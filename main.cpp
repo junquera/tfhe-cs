@@ -80,50 +80,59 @@ void multiply(LweSample* result, const LweSample* a, const LweSample* b, const i
   LweSample* cero = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   LweSample* uno = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
 
-  //initialize the carry to 0
+  LweSample* res_aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+
+
   bootsCONSTANT(&tmps[0], 0, bk);
-  bootsCONSTANT(&aux[0], 0, bk);
-  bootsCONSTANT(&factor[0], 0, bk);
-  bootsCONSTANT(&sumando[0], 0, bk);
-  bootsCONSTANT(&cero[0], 0, bk);
+  for(int i=0; i < nb_bits; i++){
+    bootsCONSTANT(&aux[i], 0, bk);
+    bootsCONSTANT(&factor[i], 0, bk);
+    bootsCONSTANT(&sumando[i], 0, bk);
+    bootsCONSTANT(&cero[i], 0, bk);
+    bootsCONSTANT(&uno[i], 0, bk);
+    bootsCONSTANT(&res_aux[i], 0, bk);
+  }
   bootsCONSTANT(&uno[0], 1, bk);
 
   /**
   ALGORITMO DE MULTIPLICACIÓN "CIEGA":
    Repetir 2^nb_bits:
 
-   factor = (aux == b)? 0 : b;
    sumando = (aux == b)? 0 : 1;
+   factor = (aux == b)? 0 : a;
 
    aux += sumando;
    result += factor;
   */
 
-
-
   for(int i = 0; i < pow(2, nb_bits); i++){
-    cout << "Ini: " << i << endl;
-    bootsXNOR(tmps, aux, b, bk);
+    bootsXNOR(tmps, aux, b, bk); // Creo que esta comparación no es así...
 
-    bootsMUX(factor, tmps, cero, b, bk);
+    bootsMUX(factor, tmps, cero, a, bk);
     bootsMUX(sumando, tmps, cero, uno, bk);
 
     sum(aux, aux, sumando, nb_bits, bk);
-    sum(result, result, factor, nb_bits, bk);
+    sum(res_aux, res_aux, factor, nb_bits, bk);
 
-    cout << "Fin: " << i << endl;
+    cout << "It: " << i+1 << endl;
   }
+  bootsCOPY(result, res_aux, bk);
 
-  delete_bate_bootstrapping_ciphertext_array(2, tmps);
-  delete_bate_bootstrapping_ciphertext_array(nb_bits, aux);
-  delete_bate_bootstrapping_ciphertext_array(nb_bits, factor);
-  delete_bate_bootstrapping_ciphertext_array(nb_bits, sumando);
-  delete_bate_bootstrapping_ciphertext_array(nb_bits, cero);
-  delete_bate_bootstrapping_ciphertext_array(nb_bits, uno);
+  delete_gate_bootstrapping_ciphertext_array(nb_bits, tmps);
+  delete_gate_bootstrapping_ciphertext_array(nb_bits, aux);
+  delete_gate_bootstrapping_ciphertext_array(nb_bits, factor);
+  delete_gate_bootstrapping_ciphertext_array(nb_bits, sumando);
+  delete_gate_bootstrapping_ciphertext_array(nb_bits, cero);
+  delete_gate_bootstrapping_ciphertext_array(nb_bits, uno);
+  delete_gate_bootstrapping_ciphertext_array(nb_bits, res_aux);
 }
 
 int main(){
 	const int minimum_lambda = 110;
+
+  // Número de bits con los que queremos trabajar
+  const int nb_bits = 4;
+
 	TFheGateBootstrappingParameterSet* params = new_default_gate_bootstrapping_parameters(minimum_lambda);
    //generate a random key
     uint32_t seed[] = { 314, 1592, 657 };
@@ -142,16 +151,16 @@ int main(){
 
 
     //generate encrypt the 16 bits of 2017
-   int16_t plaintext1 = 2017;
-   LweSample* ciphertext1 = new_gate_bootstrapping_ciphertext_array(16, params);
-   for (int i=0; i<16; i++) {
+   int16_t plaintext1 = 2;
+   LweSample* ciphertext1 = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
+   for (int i=0; i<nb_bits; i++) {
        bootsSymEncrypt(&ciphertext1[i], (plaintext1>>i)&1, key);
    }
 
    //generate encrypt the 16 bits of 42
-   int16_t plaintext2 = 42;
-   LweSample* ciphertext2 = new_gate_bootstrapping_ciphertext_array(16, params);
-   for (int i=0; i<16; i++) {
+   int16_t plaintext2 = 3;
+   LweSample* ciphertext2 = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
+   for (int i=0; i<nb_bits; i++) {
        bootsSymEncrypt(&ciphertext2[i], (plaintext2>>i)&1, key);
    }
 
@@ -159,15 +168,15 @@ int main(){
 
    //export the 2x16 ciphertexts to a file (for the cloud)
    FILE* cloud_data = fopen("cloud.data","wb");
-   for (int i=0; i<16; i++)
+   for (int i=0; i<nb_bits; i++)
        export_gate_bootstrapping_ciphertext_toFile(cloud_data, &ciphertext1[i], params);
-   for (int i=0; i<16; i++)
+   for (int i=0; i<nb_bits; i++)
        export_gate_bootstrapping_ciphertext_toFile(cloud_data, &ciphertext2[i], params);
    fclose(cloud_data);
 
    //clean up all pointers
-   delete_gate_bootstrapping_ciphertext_array(16, ciphertext2);
-   delete_gate_bootstrapping_ciphertext_array(16, ciphertext1);
+   delete_gate_bootstrapping_ciphertext_array(nb_bits, ciphertext2);
+   delete_gate_bootstrapping_ciphertext_array(nb_bits, ciphertext1);
 		/**
 		SERVER!
 		*/
@@ -181,34 +190,35 @@ int main(){
  const TFheGateBootstrappingParameterSet* params2 = bk->params;
 
  //read the 2x16 ciphertexts
- ciphertext1 = new_gate_bootstrapping_ciphertext_array(16, params2);
- ciphertext2 = new_gate_bootstrapping_ciphertext_array(16, params2);
+ ciphertext1 = new_gate_bootstrapping_ciphertext_array(nb_bits, params2);
+ ciphertext2 = new_gate_bootstrapping_ciphertext_array(nb_bits, params2);
 
  //reads the 2x16 ciphertexts from the cloud file
  cloud_data = fopen("cloud.data","rb");
- for (int i=0; i<16; i++) import_gate_bootstrapping_ciphertext_fromFile(cloud_data, &ciphertext1[i], params2);
- for (int i=0; i<16; i++) import_gate_bootstrapping_ciphertext_fromFile(cloud_data, &ciphertext2[i], params2);
+ for (int i=0; i<nb_bits; i++) import_gate_bootstrapping_ciphertext_fromFile(cloud_data, &ciphertext1[i], params2);
+ for (int i=0; i<nb_bits; i++) import_gate_bootstrapping_ciphertext_fromFile(cloud_data, &ciphertext2[i], params2);
  fclose(cloud_data);
 
  //do some operations on the ciphertexts: here, we will compute the
  //minimum of the two
- LweSample* result = new_gate_bootstrapping_ciphertext_array(16, params2);
+ LweSample* result = new_gate_bootstrapping_ciphertext_array(nb_bits, params2);
  // minimum(result, ciphertext1, ciphertext2, 16, bk);
  // sum(result, ciphertext1, ciphertext2, 16, bk);
- multiply(result, ciphertext1, ciphertext2, 16, bk);
-
+ multiply(result, ciphertext1, ciphertext2, nb_bits, bk);
 
  //export the 32 ciphertexts to a file (for the cloud)
  FILE* answer_data = fopen("answer.data","wb");
- for (int i=0; i<16; i++) export_gate_bootstrapping_ciphertext_toFile(answer_data, &result[i], params2);
+ for (int i=0; i<nb_bits; i++) export_gate_bootstrapping_ciphertext_toFile(answer_data, &result[i], params2);
  fclose(answer_data);
 
 
+
  //clean up all pointers
- delete_gate_bootstrapping_ciphertext_array(16, result);
- delete_gate_bootstrapping_ciphertext_array(16, ciphertext2);
- delete_gate_bootstrapping_ciphertext_array(16, ciphertext1);
+ delete_gate_bootstrapping_ciphertext_array(nb_bits, result);
+ delete_gate_bootstrapping_ciphertext_array(nb_bits, ciphertext2);
+ delete_gate_bootstrapping_ciphertext_array(nb_bits, ciphertext1);
  delete_gate_bootstrapping_cloud_keyset(bk);
+
 
 /**
 VERIF!
@@ -224,17 +234,17 @@ VERIF!
     const TFheGateBootstrappingParameterSet* params3 = key->params;
 
     //read the 16 ciphertexts of the result
-    LweSample* answer = new_gate_bootstrapping_ciphertext_array(16, params3);
+    LweSample* answer = new_gate_bootstrapping_ciphertext_array(nb_bits, params3);
 
     //import the 32 ciphertexts from the answer file
     answer_data = fopen("answer.data","rb");
-    for (int i=0; i<16; i++)
+    for (int i=0; i<nb_bits; i++)
         import_gate_bootstrapping_ciphertext_fromFile(answer_data, &answer[i], params3);
     fclose(answer_data);
 
     //decrypt and rebuild the 16-bit plaintext answer
     int16_t int_answer = 0;
-    for (int i=0; i<16; i++) {
+    for (int i=0; i<nb_bits; i++) {
         int ai = bootsSymDecrypt(&answer[i], key);
         int_answer |= (ai<<i);
     }
@@ -243,7 +253,7 @@ VERIF!
     printf("I hope you remember what was the question!\n");
 
     //clean up all pointers
-    delete_gate_bootstrapping_ciphertext_array(16, answer);
+    delete_gate_bootstrapping_ciphertext_array(nb_bits, answer);
     delete_gate_bootstrapping_secret_keyset(key);
 
 	return 0;
