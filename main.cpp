@@ -70,6 +70,29 @@ void sum(LweSample* result, const LweSample* a, const LweSample* b, const int nb
 
 }
 
+void resta(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
+  LweSample* restando = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  LweSample* uno = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+
+  for(int i=0; i < nb_bits; i++){
+    bootsCONSTANT(&restando[i], 0, bk);
+    bootsCONSTANT(&uno[i], 0, bk);
+    bootsCONSTANT(&aux[i], 0, bk);
+  }
+  bootsCONSTANT(&uno[0], 1, bk);
+
+  // b negativo
+  for(int i = 0; i < nb_bits; i++)
+    bootsNOT(&restando[i], &b[i], bk);
+  sum(aux, restando, uno, nb_bits, bk);
+
+  for(int i=0; i < nb_bits; i++){
+    bootsCOPY(&restando[i], &aux[i], bk);
+  }
+
+  sum(result, a, restando, nb_bits, bk);
+}
 void equal(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
   LweSample* tmps = new_gate_bootstrapping_ciphertext_array(2, bk->params);
 
@@ -155,7 +178,8 @@ int main(){
 	const int minimum_lambda = 110;
 
   // Número de bits con los que queremos trabajar
-  const int nb_bits = 3;
+  // IMPORTANTE PARA LA MULTIPLICACIÓN
+  const int nb_bits = 16;
 
 	TFheGateBootstrappingParameterSet* params = new_default_gate_bootstrapping_parameters(minimum_lambda);
    //generate a random key
@@ -175,14 +199,14 @@ int main(){
 
 
     //generate encrypt the 16 bits of 2017
-   int16_t plaintext1 = 3;
+   int16_t plaintext1 = 2;
    LweSample* ciphertext1 = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
    for (int i=0; i<nb_bits; i++) {
        bootsSymEncrypt(&ciphertext1[i], (plaintext1>>i)&1, key);
    }
 
    //generate encrypt the 16 bits of 42
-   int16_t plaintext2 = 2;
+   int16_t plaintext2 = 3;
    LweSample* ciphertext2 = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
    for (int i=0; i<nb_bits; i++) {
        bootsSymEncrypt(&ciphertext2[i], (plaintext2>>i)&1, key);
@@ -228,7 +252,9 @@ int main(){
  LweSample* result = new_gate_bootstrapping_ciphertext_array(nb_bits, params2);
  // minimum(result, ciphertext1, ciphertext2, 16, bk);
  // sum(result, ciphertext1, ciphertext2, 16, bk);
- multiply(result, ciphertext1, ciphertext2, nb_bits, bk);
+ resta(result, ciphertext1, ciphertext2, 16, bk);
+ // multiply(result, ciphertext1, ciphertext2, nb_bits, bk);
+
 
  //export the 32 ciphertexts to a file (for the cloud)
  FILE* answer_data = fopen("answer.data","wb");
