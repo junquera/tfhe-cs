@@ -26,4 +26,21 @@ def sum(a, b):
     return result
 
 
+def mult(a, b):
+
+    n_bits = max(len(bin(a)[2:]), len(bin(b)[2:]))
+    res = 0
+    aux = 0
+    for i in range(2**n_bits):
+        tmps = (b == aux)
+
+        factor = 0 if tmps else a
+        sumando = 0 if tmps else 1
+
+        aux = aux + sumando
+        res = res + factor
+
+
+    return res
 print(sum(4, 10))
+print(mult(4, 3))

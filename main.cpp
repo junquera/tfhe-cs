@@ -70,9 +70,22 @@ void sum(LweSample* result, const LweSample* a, const LweSample* b, const int nb
 
 }
 
+void equal(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
+  LweSample* tmps = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+
+  bootsCONSTANT(&result[0], 1, bk);
+
+  for(int i = 0; i < nb_bits; i++){
+    bootsXNOR(&tmps[0], &a[i], &b[i], bk);
+    bootsAND(&result[0], &result[0], &tmps[0], bk);
+  }
+
+}
+
 void multiply(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {
   LweSample* tmps = new_gate_bootstrapping_ciphertext_array(2, bk->params);
   LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  LweSample* aux2 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
 
   LweSample* factor = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   LweSample* sumando = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
@@ -80,17 +93,18 @@ void multiply(LweSample* result, const LweSample* a, const LweSample* b, const i
   LweSample* cero = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   LweSample* uno = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
 
+  // TODO result y res_aux tienen que tener el doble de bits que nb_bits
   LweSample* res_aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
-
 
   bootsCONSTANT(&tmps[0], 0, bk);
   for(int i=0; i < nb_bits; i++){
+    bootsCONSTANT(&result[i], 0, bk);
     bootsCONSTANT(&aux[i], 0, bk);
+    bootsCONSTANT(&aux2[i], 0, bk);
     bootsCONSTANT(&factor[i], 0, bk);
     bootsCONSTANT(&sumando[i], 0, bk);
     bootsCONSTANT(&cero[i], 0, bk);
     bootsCONSTANT(&uno[i], 0, bk);
-    bootsCONSTANT(&res_aux[i], 0, bk);
   }
   bootsCONSTANT(&uno[0], 1, bk);
 
@@ -106,32 +120,42 @@ void multiply(LweSample* result, const LweSample* a, const LweSample* b, const i
   */
 
   for(int i = 0; i < pow(2, nb_bits); i++){
-    bootsXNOR(tmps, aux, b, bk); // Creo que esta comparación no es así...
 
-    bootsMUX(factor, tmps, cero, a, bk);
-    bootsMUX(sumando, tmps, cero, uno, bk);
 
-    sum(aux, aux, sumando, nb_bits, bk);
-    sum(res_aux, res_aux, factor, nb_bits, bk);
+    equal(tmps, aux, b, nb_bits, bk); // Creo que esta comparación no es así...
+
+    for(int j = 0; j < nb_bits; j++){
+      bootsMUX(&sumando[j], &tmps[0], &cero[j], &uno[j], bk);
+      bootsMUX(&factor[j], &tmps[0], &cero[j], &a[j], bk);
+    }
+
+
+    sum(aux2, aux, sumando, nb_bits, bk);
+    for(int j = 0; j < nb_bits; j++){
+      bootsCOPY(&aux[j], &aux2[j], bk);
+    }
+
+    sum(res_aux, result, factor, nb_bits, bk);
+    for(int j = 0; j < nb_bits; j++){
+      bootsCOPY(&result[j], &res_aux[j], bk);
+    }
 
     cout << "It: " << i+1 << endl;
   }
-  bootsCOPY(result, res_aux, bk);
 
-  delete_gate_bootstrapping_ciphertext_array(nb_bits, tmps);
+  delete_gate_bootstrapping_ciphertext_array(2, tmps);
   delete_gate_bootstrapping_ciphertext_array(nb_bits, aux);
   delete_gate_bootstrapping_ciphertext_array(nb_bits, factor);
   delete_gate_bootstrapping_ciphertext_array(nb_bits, sumando);
   delete_gate_bootstrapping_ciphertext_array(nb_bits, cero);
   delete_gate_bootstrapping_ciphertext_array(nb_bits, uno);
-  delete_gate_bootstrapping_ciphertext_array(nb_bits, res_aux);
 }
 
 int main(){
 	const int minimum_lambda = 110;
 
   // Número de bits con los que queremos trabajar
-  const int nb_bits = 4;
+  const int nb_bits = 3;
 
 	TFheGateBootstrappingParameterSet* params = new_default_gate_bootstrapping_parameters(minimum_lambda);
    //generate a random key
@@ -151,14 +175,14 @@ int main(){
 
 
     //generate encrypt the 16 bits of 2017
-   int16_t plaintext1 = 2;
+   int16_t plaintext1 = 3;
    LweSample* ciphertext1 = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
    for (int i=0; i<nb_bits; i++) {
        bootsSymEncrypt(&ciphertext1[i], (plaintext1>>i)&1, key);
    }
 
    //generate encrypt the 16 bits of 42
-   int16_t plaintext2 = 3;
+   int16_t plaintext2 = 2;
    LweSample* ciphertext2 = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
    for (int i=0; i<nb_bits; i++) {
        bootsSymEncrypt(&ciphertext2[i], (plaintext2>>i)&1, key);
