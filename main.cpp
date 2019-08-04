@@ -70,6 +70,58 @@ void sum(LweSample* result, const LweSample* a, const LweSample* b, const int nb
 
 }
 
+void multiply(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {
+  LweSample* tmps = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+  LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+
+  LweSample* factor = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  LweSample* sumando = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+
+  LweSample* cero = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  LweSample* uno = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+
+  //initialize the carry to 0
+  bootsCONSTANT(&tmps[0], 0, bk);
+  bootsCONSTANT(&aux[0], 0, bk);
+  bootsCONSTANT(&factor[0], 0, bk);
+  bootsCONSTANT(&sumando[0], 0, bk);
+  bootsCONSTANT(&cero[0], 0, bk);
+  bootsCONSTANT(&uno[0], 1, bk);
+
+  /**
+  ALGORITMO DE MULTIPLICACIÓN "CIEGA":
+   Repetir 2^nb_bits:
+
+   factor = (aux == b)? 0 : b;
+   sumando = (aux == b)? 0 : 1;
+
+   aux += sumando;
+   result += factor;
+  */
+
+
+
+  for(int i = 0; i < pow(2, nb_bits); i++){
+    cout << "Ini: " << i << endl;
+    bootsXNOR(tmps, aux, b, bk);
+
+    bootsMUX(factor, tmps, cero, b, bk);
+    bootsMUX(sumando, tmps, cero, uno, bk);
+
+    sum(aux, aux, sumando, nb_bits, bk);
+    sum(result, result, factor, nb_bits, bk);
+
+    cout << "Fin: " << i << endl;
+  }
+
+  delete_bate_bootstrapping_ciphertext_array(2, tmps);
+  delete_bate_bootstrapping_ciphertext_array(nb_bits, aux);
+  delete_bate_bootstrapping_ciphertext_array(nb_bits, factor);
+  delete_bate_bootstrapping_ciphertext_array(nb_bits, sumando);
+  delete_bate_bootstrapping_ciphertext_array(nb_bits, cero);
+  delete_bate_bootstrapping_ciphertext_array(nb_bits, uno);
+}
+
 int main(){
 	const int minimum_lambda = 110;
 	TFheGateBootstrappingParameterSet* params = new_default_gate_bootstrapping_parameters(minimum_lambda);
@@ -142,7 +194,8 @@ int main(){
  //minimum of the two
  LweSample* result = new_gate_bootstrapping_ciphertext_array(16, params2);
  // minimum(result, ciphertext1, ciphertext2, 16, bk);
-sum(result, ciphertext1, ciphertext2, 16, bk);
+ // sum(result, ciphertext1, ciphertext2, 16, bk);
+ multiply(result, ciphertext1, ciphertext2, 16, bk);
 
 
  //export the 32 ciphertexts to a file (for the cloud)
