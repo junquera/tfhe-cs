@@ -92,6 +92,10 @@ void resta(LweSample* result, const LweSample* a, const LweSample* b, const int 
   }
 
   sum(result, a, restando, nb_bits, bk);
+
+  delete_gate_bootstrapping_ciphertext_array(nb_bits, restando);
+  delete_gate_bootstrapping_ciphertext_array(nb_bits, uno);
+  delete_gate_bootstrapping_ciphertext_array(nb_bits, aux);
 }
 void equal(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
   LweSample* tmps = new_gate_bootstrapping_ciphertext_array(2, bk->params);
@@ -103,9 +107,12 @@ void equal(LweSample* result, const LweSample* a, const LweSample* b, const int 
     bootsAND(&result[0], &result[0], &tmps[0], bk);
   }
 
+  delete_gate_bootstrapping_ciphertext_array(2, tmps);
+
 }
 
-void multiply(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {
+// TODO Nueva multiplicación
+void old_multiply(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {
   LweSample* tmps = new_gate_bootstrapping_ciphertext_array(2, bk->params);
   LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   LweSample* aux2 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
@@ -144,8 +151,7 @@ void multiply(LweSample* result, const LweSample* a, const LweSample* b, const i
 
   for(int i = 0; i < pow(2, nb_bits); i++){
 
-
-    equal(tmps, aux, b, nb_bits, bk); // Creo que esta comparación no es así...
+    equal(tmps, aux, b, nb_bits, bk);
 
     for(int j = 0; j < nb_bits; j++){
       bootsMUX(&sumando[j], &tmps[0], &cero[j], &uno[j], bk);
@@ -174,7 +180,46 @@ void multiply(LweSample* result, const LweSample* a, const LweSample* b, const i
   delete_gate_bootstrapping_ciphertext_array(nb_bits, uno);
 }
 
+void multiply(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {
+  /**
+  n_bits = max(len(bin(a)[2:]), len(bin(b)[2:]))
+  res = 0
+  for i in range(n_bits):
+      aux_a = (a>>i & 0b1)
+      aux_b = 0
+      for j in range(n_bits):
+          aux_b += ((b >> j & 0b1) & aux_a) << j
+      res += aux_b << i
+  return res
+  */
+
+  LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  LweSample* aux2 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+
+  // TODO Ajustar numero de bits para que: nb(result) = nb(a)+nb(b)
+  for(int i = 0; i < nb_bits; i++){
+    bootsCONSTANT(&aux[i], 0, bk);
+    bootsCONSTANT(&aux2[i], 0, bk);
+    bootsCONSTANT(&result[i], 0, bk);
+  }
+
+  for(int i = 0; i < (nb_bits/2); i++) {
+
+    for(int j = 0; j < (nb_bits/2) + 1; j++) {
+      bootsAND(&aux[i+j] , &a[i], &b[j], bk);
+    }
+    bootsCONSTANT(&aux[0], 0, bk);
+
+    sum(aux2, aux, result, nb_bits, bk);
+
+    for(int j = 0; j < nb_bits; j++) {
+      bootsCOPY(&result[j], &aux2[j], bk);
+    }
+
+  }
+}
 int main(){
+  // TODO ¿QUé es esto?
 	const int minimum_lambda = 110;
 
   // Número de bits con los que queremos trabajar
@@ -199,14 +244,14 @@ int main(){
 
 
     //generate encrypt the 16 bits of 2017
-   int16_t plaintext1 = 2;
+   int16_t plaintext1 = 14;
    LweSample* ciphertext1 = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
    for (int i=0; i<nb_bits; i++) {
        bootsSymEncrypt(&ciphertext1[i], (plaintext1>>i)&1, key);
    }
 
    //generate encrypt the 16 bits of 42
-   int16_t plaintext2 = 3;
+   int16_t plaintext2 = 50;
    LweSample* ciphertext2 = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
    for (int i=0; i<nb_bits; i++) {
        bootsSymEncrypt(&ciphertext2[i], (plaintext2>>i)&1, key);
@@ -252,8 +297,8 @@ int main(){
  LweSample* result = new_gate_bootstrapping_ciphertext_array(nb_bits, params2);
  // minimum(result, ciphertext1, ciphertext2, 16, bk);
  // sum(result, ciphertext1, ciphertext2, 16, bk);
- resta(result, ciphertext1, ciphertext2, 16, bk);
- // multiply(result, ciphertext1, ciphertext2, nb_bits, bk);
+ // resta(result, ciphertext1, ciphertext2, 16, bk);
+ multiply(result, ciphertext1, ciphertext2, nb_bits, bk);
 
 
  //export the 32 ciphertexts to a file (for the cloud)

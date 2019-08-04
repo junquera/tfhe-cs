@@ -26,7 +26,7 @@ def sum(a, b):
     return result
 
 
-def mult(a, b):
+def old_mult(a, b):
 
     n_bits = max(len(bin(a)[2:]), len(bin(b)[2:]))
     res = 0
@@ -40,7 +40,19 @@ def mult(a, b):
         aux = aux + sumando
         res = res + factor
 
-
     return res
+
+
+def mult(a, b):
+    n_bits = max(len(bin(a)[2:]), len(bin(b)[2:]))
+    res = 0
+    for i in range(n_bits):
+        aux_a = (a>>i & 0b1)
+        aux_b = 0
+        for j in range(n_bits):
+            aux_b += ((b >> j & 0b1) & aux_a) << j
+        res += aux_b << i
+    return res
+
 print(sum(4, 10))
-print(mult(4, 3))
+print(mult(4, 2))
