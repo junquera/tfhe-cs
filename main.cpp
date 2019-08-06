@@ -432,7 +432,7 @@ int main(){
 
   // Número de bits con los que queremos trabajar
   // IMPORTANTE PARA LA MULTIPLICACIÓN
-  const int nb_bits = 16;
+  const int nb_bits = 32;
 
 	TFheGateBootstrappingParameterSet* params = new_default_gate_bootstrapping_parameters(minimum_lambda);
    //generate a random key
@@ -452,14 +452,14 @@ int main(){
 
 
     //generate encrypt the 16 bits of 2017
-   int16_t plaintext1 = 82;
+   int32_t plaintext1 = 82;
    LweSample* ciphertext1 = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
    for (int i=0; i<nb_bits; i++) {
        bootsSymEncrypt(&ciphertext1[i], (plaintext1>>i)&1, key);
    }
 
    //generate encrypt the 16 bits of 42
-   int16_t plaintext2 = 3;
+   int32_t plaintext2 = 3;
    LweSample* ciphertext2 = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
    for (int i=0; i<nb_bits; i++) {
        bootsSymEncrypt(&ciphertext2[i], (plaintext2>>i)&1, key);
@@ -545,7 +545,7 @@ int main(){
     fclose(answer_data);
 
     //decrypt and rebuild the 16-bit plaintext answer
-    int16_t int_answer = 0;
+    int32_t int_answer = 0;
     for (int i=0; i<nb_bits; i++) {
         int ai = bootsSymDecrypt(&answer[i], key);
         int_answer |= (ai<<i);

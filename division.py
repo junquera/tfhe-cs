@@ -66,7 +66,6 @@ def divide(dividendo, divisor):
             print(cociente)
             print(resto)
             input()
-
         gt = 1 if mayor_igual(dividendo, divisor) else 0
         cociente[padding + i] = gt
 
@@ -74,15 +73,6 @@ def divide(dividendo, divisor):
         dividendo = resto if gt else dividendo
 
         divisor = shiftr(divisor, 1)
-
-
-
-    if debug:
-        print(dividendo)
-        print(divisor)
-        print(cociente)
-        print(resto)
-        input()
 
     return cociente
 
@@ -112,11 +102,11 @@ def test(a, b):
     print(a, '/', b, '=', bits2int(res), bits2int(res)==int(a/b))
 
 
-debug = False
+# debug = False
+#
+# for b in range(20)[2:]:
+#     for a in range(20):
+#         test(a, b)
 
-for b in range(20)[2:]:
-    for a in range(20):
-        test(a, b)
-
-# debug = True
-# test(9,9)
+debug = True
+test(82, 30)
