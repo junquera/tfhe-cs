@@ -28,7 +28,7 @@ def add(a, b):
     return res[::-1]
 
 bits = 16
-cero = [0 for _ in range(16)]
+cero = [0 for _ in range(bits)]
 uno = [0 for _ in range(bits)]
 uno[-1] = 1
 
@@ -50,15 +50,10 @@ def mayor_igual(a, b):
 
 def divide(dividendo, divisor):
 
-    cociente = [0 for _ in range(bits)]
+    cociente = [i for i in cero]
     resto = [i for i in cero]
 
-    alinea = [i for i in cero]
-    ya = False
-
     padding = int(bits/2)
-
-    cociente = [0 for _ in range(bits)]
 
 
     divisor = shiftl(divisor, padding - 1)
@@ -75,12 +70,8 @@ def divide(dividendo, divisor):
         gt = 1 if mayor_igual(dividendo, divisor) else 0
         cociente[padding + i] = gt
 
-        if gt:
-            # dividendo_aux = shiftl(shiftr(dividendo, bits-i+1), bits-i+1)
-            # resto_aux = shiftl(shiftr(resto, bits-i+1), bits-i+1)
-            resto = sub(dividendo, divisor)
-
-            dividendo = resto # add(resto_aux, dividendo_aux)
+        resto = sub(dividendo, divisor) if gt else resto
+        dividendo = resto if gt else dividendo
 
         divisor = shiftr(divisor, 1)
 
