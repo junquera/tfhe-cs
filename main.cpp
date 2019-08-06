@@ -237,13 +237,21 @@ void multiply(LweSample* result, const LweSample* a, const LweSample* b, const i
   negativo(negatA, a, nb_bits, bk);
   negativo(negatB, b, nb_bits, bk);
 
-  // Ponemos los dos números en positivo
-  maximum(opA, negatA, a, nb_bits, bk);
-  maximum(opB, negatB, b, nb_bits, bk);
+  /**
+    Ponemos los dos números en positivo
+    Usamos minimum porque los numeros negativos se codifican con un 1 delante,
+    y se considerarían mayores que los negativos
+  */
+  minimum(opA, negatA, a, nb_bits, bk);
+  minimum(opB, negatB, b, nb_bits, bk);
 
   equal(correctorA, negatA, opA, nb_bits, bk);
   equal(correctorB, negatB, opB, nb_bits, bk);
 
+  /**
+    Podría sustituirse todo por:
+    bootXOR(&correctorA[0], &a[nb_bits], &a[nb_bits], bk); ?
+  */
   // Si solo uno de los dos es negativo, el resultado es negativo
   bootsXOR(corrige, correctorA, correctorB, bk);
 
@@ -253,6 +261,7 @@ void multiply(LweSample* result, const LweSample* a, const LweSample* b, const i
     // Resetea aux
     for(int j = 0; j < nb_bits; j++){
       bootsCONSTANT(&aux[j], 0, bk);
+      bootsCONSTANT(&aux2[j], 0, bk);
     }
 
     for(int j = 0; j < (nb_bits/2) + 1; j++) {
@@ -260,6 +269,7 @@ void multiply(LweSample* result, const LweSample* a, const LweSample* b, const i
     }
 
     sum(aux2, aux, result, nb_bits, bk);
+
 
     for(int j = 0; j < nb_bits; j++) {
       bootsCOPY(&result[j], &aux2[j], bk);
@@ -375,7 +385,6 @@ void divide(LweSample* result, const LweSample* a, const LweSample* b, const int
   shiftl(divisor, b, padding - 1, nb_bits, bk);
 
   for(int i = 0; i < padding; i++) {
-    cout << i << endl;
     // gt = dividendo >= divisor
     mayor_igual(gt, dividendo, divisor, nb_bits, bk);
 
@@ -391,7 +400,7 @@ void divide(LweSample* result, const LweSample* a, const LweSample* b, const int
     // resto = gt? sub(dividendo, divisor) : resto
     resta(aux, dividendo, divisor, nb_bits, bk);
     for(int j = 0; j < nb_bits; j++){
-      bootsMUX(&aux2[j], &gt[0], &aux[j], &resto[j], bk);
+      bootsMUX(&aux2[j], &gt[0], &aux[j], &dividendo[j], bk);
     }
     for(int j = 0; j < nb_bits; j++){
       bootsCOPY(&resto[j], &aux2[j], bk);
@@ -450,7 +459,7 @@ int main(){
    }
 
    //generate encrypt the 16 bits of 42
-   int16_t plaintext2 = 30;
+   int16_t plaintext2 = 3;
    LweSample* ciphertext2 = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
    for (int i=0; i<nb_bits; i++) {
        bootsSymEncrypt(&ciphertext2[i], (plaintext2>>i)&1, key);
@@ -498,8 +507,8 @@ int main(){
    // maximum(result, ciphertext1, ciphertext2, 16, bk);
    // sum(result, ciphertext1, ciphertext2, 16, bk);
    // resta(result, ciphertext1, ciphertext2, 16, bk);
-   // multiply(result, ciphertext1, ciphertext2, nb_bits, bk);
-   divide(result, ciphertext1, ciphertext2, nb_bits, bk);
+   multiply(result, ciphertext1, ciphertext2, nb_bits, bk);
+   // divide(result, ciphertext1, ciphertext2, nb_bits, bk);
    // mayor_igual(result, ciphertext2, ciphertext1, nb_bits, bk);
 
    //export the 32 ciphertexts to a file (for the cloud)
