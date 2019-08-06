@@ -45,7 +45,7 @@ def neg(a):
 def sub(a, b):
     return add(a, neg(b))
 
-def mayor(a, b):
+def mayor_igual(a, b):
     return bits2int(a) >= bits2int(b)
 
 def divide(dividendo, divisor):
@@ -71,7 +71,7 @@ def divide(dividendo, divisor):
             print(resto)
             input()
 
-        gt = 1 if mayor(dividendo, divisor) else 0
+        gt = 1 if mayor_igual(dividendo, divisor) else 0
         cociente.append(gt)
 
         if gt:
@@ -115,7 +115,8 @@ def test(a, b):
         bits_a.append(a>>(15-i)&0b1)
         bits_b.append(b>>(15-i)&0b1)
 
-    print(a, '/', b, '=', bits2int(divide(bits_a, bits_b)))
+    res = bits2int(divide(bits_a, bits_b))
+    print(a, '/', b, '=', res, res==int(a/b))
 
 
 debug = False
