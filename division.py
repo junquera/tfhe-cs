@@ -50,19 +50,20 @@ def mayor_igual(a, b):
 
 def divide(dividendo, divisor):
 
-    cociente = []
+    cociente = [0 for _ in range(bits)]
     resto = [i for i in cero]
 
     alinea = [i for i in cero]
     ya = False
 
-    iteraciones = int(bits/2)
+    padding = int(bits/2)
 
-    cociente = [0 for _ in range(int(bits/2))]
+    cociente = [0 for _ in range(bits)]
 
 
-    divisor = shiftl(divisor, int(bits/2) - 1)
-    for i in range(int(bits/2)):
+    divisor = shiftl(divisor, padding - 1)
+
+    for i in range(padding):
         if debug:
             print(i)
             print(dividendo)
@@ -72,7 +73,7 @@ def divide(dividendo, divisor):
             input()
 
         gt = 1 if mayor_igual(dividendo, divisor) else 0
-        cociente.append(gt)
+        cociente[padding + i] = gt
 
         if gt:
             # dividendo_aux = shiftl(shiftr(dividendo, bits-i+1), bits-i+1)
@@ -115,8 +116,9 @@ def test(a, b):
         bits_a.append(a>>(15-i)&0b1)
         bits_b.append(b>>(15-i)&0b1)
 
-    res = bits2int(divide(bits_a, bits_b))
-    print(a, '/', b, '=', res, res==int(a/b))
+    res = divide(bits_a, bits_b)
+
+    print(a, '/', b, '=', bits2int(res), bits2int(res)==int(a/b))
 
 
 debug = False
