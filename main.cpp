@@ -29,8 +29,8 @@ void equal(LweSample* result, const LweSample* a, const LweSample* b, const int 
 }
 
 
-// this function compares two multibit words, and puts the min in result
-void minimum(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {
+// this function compares two multibit words, and puts the max in result
+void maximum(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {
     LweSample* tmps = new_gate_bootstrapping_ciphertext_array(2, bk->params);
 
     //initialize the carry to 0
@@ -47,8 +47,8 @@ void minimum(LweSample* result, const LweSample* a, const LweSample* b, const in
 
     delete_gate_bootstrapping_ciphertext_array(2, tmps);
 }
-// this function compares two multibit words, and puts the max in result
-void maximum(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {
+// this function compares two multibit words, and puts the min in result
+void minimum(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {
     LweSample* min = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
     LweSample* eq = new_gate_bootstrapping_ciphertext_array(2, bk->params);
 
@@ -209,49 +209,81 @@ void old_multiply(LweSample* result, const LweSample* a, const LweSample* b, con
 }
 
 void multiply(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {
-  /**
-  n_bits = max(len(bin(a)[2:]), len(bin(b)[2:]))
-  res = 0
-  for i in range(n_bits):
-      aux_a = (a>>i & 0b1)
-      aux_b = 0
-      for j in range(n_bits):
-          aux_b += ((b >> j & 0b1) & aux_a) << j
-      res += aux_b << i
-  return res
-  */
 
-  // TODO Tener en cuenta numeros negativos
   LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   LweSample* aux2 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
 
+  // Parámetros para tener en cuenta numeros negativos
   LweSample* negatA = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   LweSample* negatB = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
 
+  LweSample* opA = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  LweSample* opB = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+
+  LweSample* correctorA = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+  LweSample* correctorB = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+
+  LweSample* corrige = new_gate_bootstrapping_ciphertext_array(2, bk->params);
 
 
   // TODO Ajustar numero de bits para que: nb(result) = nb(a)+nb(b)
   for(int i = 0; i < nb_bits; i++){
     bootsCONSTANT(&aux[i], 0, bk);
     bootsCONSTANT(&aux2[i], 0, bk);
+    bootsCONSTANT(&negatA[i], 0, bk);
+    bootsCONSTANT(&negatB[i], 0, bk);
+    bootsCONSTANT(&opA[i], 0, bk);
+    bootsCONSTANT(&opB[i], 0, bk);
     bootsCONSTANT(&result[i], 0, bk);
   }
 
+  for(int i = 0; i < 2; i++){
+    bootsCONSTANT(&correctorA[i], 0, bk);
+    bootsCONSTANT(&correctorB[i], 0, bk);
+    bootsCONSTANT(&corrige[i], 0, bk);
+  }
+
+  negativo(negatA, a, nb_bits, bk);
+  negativo(negatB, b, nb_bits, bk);
+
+  // Ponemos los dos números en positivo
+  maximum(opA, negatA, a, nb_bits, bk);
+  maximum(opB, negatB, b, nb_bits, bk);
+
+  equal(correctorA, negatA, opA, nb_bits, bk);
+  equal(correctorB, negatB, opB, nb_bits, bk);
+
+  // Si solo uno de los dos es negativo, el resultado es negativo
+  bootsXOR(corrige, correctorA, correctorB, bk);
+
+  // Multiplica opA * opB
   for(int i = 0; i < (nb_bits/2); i++) {
 
-    for(int j = 0; j < (nb_bits/2) + 1; j++) {
-      bootsAND(&aux[i+j] , &a[i], &b[j], bk);
+    // Resetea aux
+    for(int j = 0; j < nb_bits; j++){
+      bootsCONSTANT(&aux[j], 0, bk);
     }
-    bootsCONSTANT(&aux[0], 0, bk);
+
+    for(int j = 0; j < (nb_bits/2) + 1; j++) {
+      bootsAND(&aux[j+i] , &opA[i], &opB[j], bk);
+    }
 
     sum(aux2, aux, result, nb_bits, bk);
 
     for(int j = 0; j < nb_bits; j++) {
       bootsCOPY(&result[j], &aux2[j], bk);
     }
-
   }
+
+  // Determinamos si devolver el resultado positivo o negativo
+  negativo(aux, result, nb_bits, bk);
+
+  for(int i = 0; i < nb_bits; i++){
+    bootsMUX(&result[i], &corrige[0], &aux[i], &result[i], bk);
+  }
+
 }
+
 int main(){
   // TODO ¿QUé es esto?
 	const int minimum_lambda = 110;
@@ -278,7 +310,7 @@ int main(){
 
 
     //generate encrypt the 16 bits of 2017
-   int16_t plaintext1 = 2;
+   int16_t plaintext1 = -2;
    LweSample* ciphertext1 = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
    for (int i=0; i<nb_bits; i++) {
        bootsSymEncrypt(&ciphertext1[i], (plaintext1>>i)&1, key);
@@ -309,49 +341,47 @@ int main(){
 		*/
 
 		//reads the cloud key from file
- cloud_key = fopen("cloud.key","rb");
- TFheGateBootstrappingCloudKeySet* bk = new_tfheGateBootstrappingCloudKeySet_fromFile(cloud_key);
- fclose(cloud_key);
+   cloud_key = fopen("cloud.key","rb");
+   TFheGateBootstrappingCloudKeySet* bk = new_tfheGateBootstrappingCloudKeySet_fromFile(cloud_key);
+   fclose(cloud_key);
 
- //if necessary, the params are inside the key
- const TFheGateBootstrappingParameterSet* params2 = bk->params;
+   //if necessary, the params are inside the key
+   const TFheGateBootstrappingParameterSet* params2 = bk->params;
 
- //read the 2x16 ciphertexts
- ciphertext1 = new_gate_bootstrapping_ciphertext_array(nb_bits, params2);
- ciphertext2 = new_gate_bootstrapping_ciphertext_array(nb_bits, params2);
+   //read the 2x16 ciphertexts
+   ciphertext1 = new_gate_bootstrapping_ciphertext_array(nb_bits, params2);
+   ciphertext2 = new_gate_bootstrapping_ciphertext_array(nb_bits, params2);
 
- //reads the 2x16 ciphertexts from the cloud file
- cloud_data = fopen("cloud.data","rb");
- for (int i=0; i<nb_bits; i++) import_gate_bootstrapping_ciphertext_fromFile(cloud_data, &ciphertext1[i], params2);
- for (int i=0; i<nb_bits; i++) import_gate_bootstrapping_ciphertext_fromFile(cloud_data, &ciphertext2[i], params2);
- fclose(cloud_data);
+   //reads the 2x16 ciphertexts from the cloud file
+   cloud_data = fopen("cloud.data","rb");
+   for (int i=0; i<nb_bits; i++) import_gate_bootstrapping_ciphertext_fromFile(cloud_data, &ciphertext1[i], params2);
+   for (int i=0; i<nb_bits; i++) import_gate_bootstrapping_ciphertext_fromFile(cloud_data, &ciphertext2[i], params2);
+   fclose(cloud_data);
 
- //do some operations on the ciphertexts: here, we will compute the
- //minimum of the two
- LweSample* result = new_gate_bootstrapping_ciphertext_array(nb_bits, params2);
- // minimum(result, ciphertext1, ciphertext2, 16, bk);
- // sum(result, ciphertext1, ciphertext2, 16, bk);
- resta(result, ciphertext1, ciphertext2, 16, bk);
- // multiply(result, ciphertext1, ciphertext2, nb_bits, bk);
-
-
- //export the 32 ciphertexts to a file (for the cloud)
- FILE* answer_data = fopen("answer.data","wb");
- for (int i=0; i<nb_bits; i++) export_gate_bootstrapping_ciphertext_toFile(answer_data, &result[i], params2);
- fclose(answer_data);
+   //do some operations on the ciphertexts: here, we will compute the
+   //minimum of the two
+   LweSample* result = new_gate_bootstrapping_ciphertext_array(nb_bits, params2);
+   // minimum(result, ciphertext1, ciphertext2, 16, bk);
+   // maximum(result, ciphertext1, ciphertext2, 16, bk);
+   // sum(result, ciphertext1, ciphertext2, 16, bk);
+   // resta(result, ciphertext1, ciphertext2, 16, bk);
+   multiply(result, ciphertext1, ciphertext2, nb_bits, bk);
 
 
+   //export the 32 ciphertexts to a file (for the cloud)
+   FILE* answer_data = fopen("answer.data","wb");
+   for (int i=0; i<nb_bits; i++) export_gate_bootstrapping_ciphertext_toFile(answer_data, &result[i], params2);
+   fclose(answer_data);
 
- //clean up all pointers
- delete_gate_bootstrapping_ciphertext_array(nb_bits, result);
- delete_gate_bootstrapping_ciphertext_array(nb_bits, ciphertext2);
- delete_gate_bootstrapping_ciphertext_array(nb_bits, ciphertext1);
- delete_gate_bootstrapping_cloud_keyset(bk);
+   //clean up all pointers
+   delete_gate_bootstrapping_ciphertext_array(nb_bits, result);
+   delete_gate_bootstrapping_ciphertext_array(nb_bits, ciphertext2);
+   delete_gate_bootstrapping_ciphertext_array(nb_bits, ciphertext1);
+   delete_gate_bootstrapping_cloud_keyset(bk);
 
-
-/**
-VERIF!
-*/
+  /**
+  VERIF!
+  */
 
 
     //reads the cloud key from file
