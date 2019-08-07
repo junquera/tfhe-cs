@@ -395,16 +395,24 @@ void divide(LweSample* result, const LweSample* a, const LweSample* b, const int
   LweSample* isNegativeA = new_gate_bootstrapping_ciphertext_array(2, bk->params);
   LweSample* isNegativeB = new_gate_bootstrapping_ciphertext_array(2, bk->params);
 
-  LweSample* dividendo = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
-  LweSample* divisor = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
-  LweSample* cociente = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
-  LweSample* resto = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  LweSample* div_aux = new_gate_bootstrapping_ciphertext_array(2*nb_bits, bk->params);
+  LweSample* div_aux2 = new_gate_bootstrapping_ciphertext_array(2*nb_bits, bk->params);
+  LweSample* dividendo = new_gate_bootstrapping_ciphertext_array(2*nb_bits, bk->params);
+  LweSample* divisor = new_gate_bootstrapping_ciphertext_array(2*nb_bits, bk->params);
+  LweSample* cociente = new_gate_bootstrapping_ciphertext_array(2*nb_bits, bk->params);
+  LweSample* resto = new_gate_bootstrapping_ciphertext_array(2*nb_bits, bk->params);
 
   for(int i = 0; i < nb_bits; i++){
     bootsCONSTANT(&aux[i], 0, bk);
     bootsCONSTANT(&aux2[i], 0, bk);
     bootsCONSTANT(&opA[i], 0, bk);
     bootsCONSTANT(&opB[i], 0, bk);
+  }
+
+  for(int i = 0; i < 2*nb_bits; i++) {
+    bootsCONSTANT(&dividendo[i], 0, bk);
+    bootsCONSTANT(&div_aux[i], 0, bk);
+    bootsCONSTANT(&div_aux2[i], 0, bk);
     bootsCONSTANT(&divisor[i], 0, bk);
     bootsCONSTANT(&cociente[i], 0, bk);
     bootsCONSTANT(&resto[i], 0, bk);
@@ -416,8 +424,6 @@ void divide(LweSample* result, const LweSample* a, const LweSample* b, const int
   }
 
   int padding = nb_bits/2;
-
-
 
   // BEGIN LOGICA_SIGNO
   negativo(negatA, a, nb_bits, bk);
@@ -440,39 +446,40 @@ void divide(LweSample* result, const LweSample* a, const LweSample* b, const int
   }
   // END LOGICA_SIGNO
 
-  shiftl(aux, divisor, padding - 1, nb_bits, bk);
-  for(int i = 0; i < nb_bits; i++){
-    bootsCOPY(&divisor[i], &aux[i], bk);
+  shiftl(div_aux, divisor, nb_bits - 1, 2*nb_bits, bk);
+  for(int i = 0; i < 2*nb_bits; i++){
+    bootsCOPY(&divisor[i], &div_aux[i], bk);
   }
 
 
-  for(int i = 0; i < padding; i++) {
+  for(int i = 0; i < nb_bits; i++) {
     // gt = dividendo >= divisor
-    mayor_igual(gt, dividendo, divisor, nb_bits, bk);
+    cout << i << endl;
+    mayor_igual(gt, dividendo, divisor, 2*nb_bits, bk);
 
-    bootsCOPY(&cociente[padding-i-1], &gt[0], bk);
+    bootsCOPY(&cociente[nb_bits-i-1], &gt[0], bk);
 
     // resto = gt? sub(dividendo, divisor) : resto
-    resta(aux, dividendo, divisor, nb_bits, bk);
-    for(int j = 0; j < nb_bits; j++){
-      bootsMUX(&aux2[j], &gt[0], &aux[j], &dividendo[j], bk);
+    resta(div_aux, dividendo, divisor, 2*nb_bits, bk);
+    for(int j = 0; j < 2*nb_bits; j++){
+      bootsMUX(&div_aux2[j], &gt[0], &div_aux[j], &dividendo[j], bk);
     }
-    for(int j = 0; j < nb_bits; j++){
-      bootsCOPY(&resto[j], &aux2[j], bk);
+    for(int j = 0; j < 2*nb_bits; j++){
+      bootsCOPY(&resto[j], &div_aux2[j], bk);
     }
 
     // dividendo = gt ? resto : dividendo
-    for(int j = 0; j < nb_bits; j++){
-      bootsMUX(&aux2[j], &gt[0], &resto[j], &dividendo[j], bk);
+    for(int j = 0; j < 2*nb_bits; j++){
+      bootsMUX(&div_aux2[j], &gt[0], &resto[j], &dividendo[j], bk);
     }
-    for(int j = 0; j < nb_bits; j++){
-      bootsCOPY(&dividendo[j], &aux2[j], bk);
+    for(int j = 0; j < 2*nb_bits; j++){
+      bootsCOPY(&dividendo[j], &div_aux2[j], bk);
     }
 
     // divisor = shiftr(divisor, 1)
-    shiftr(aux, divisor, 1, nb_bits, bk);
-    for(int j = 0; j < nb_bits; j++)
-      bootsCOPY(&divisor[j], &aux[j], bk);
+    shiftr(div_aux, divisor, 1, 2*nb_bits, bk);
+    for(int j = 0; j < 2*nb_bits; j++)
+      bootsCOPY(&divisor[j], &div_aux[j], bk);
   }
 
   for(int i = 0; i < nb_bits; i++)
