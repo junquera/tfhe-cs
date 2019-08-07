@@ -239,8 +239,8 @@ void multiply(LweSample* result, const LweSample* a, const LweSample* b, const i
   LweSample* opA = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   LweSample* opB = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
 
-  LweSample* correctorA = new_gate_bootstrapping_ciphertext_array(2, bk->params);
-  LweSample* correctorB = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+  LweSample* isNegativeA = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+  LweSample* isNegativeB = new_gate_bootstrapping_ciphertext_array(2, bk->params);
 
   LweSample* corrige = new_gate_bootstrapping_ciphertext_array(2, bk->params);
 
@@ -257,11 +257,13 @@ void multiply(LweSample* result, const LweSample* a, const LweSample* b, const i
   }
 
   for(int i = 0; i < 2; i++){
-    bootsCONSTANT(&correctorA[i], 0, bk);
-    bootsCONSTANT(&correctorB[i], 0, bk);
+    bootsCONSTANT(&isNegativeA[i], 0, bk);
+    bootsCONSTANT(&isNegativeB[i], 0, bk);
     bootsCONSTANT(&corrige[i], 0, bk);
   }
 
+
+  // BEGIN LOGICA_SIGNO
   negativo(negatA, a, nb_bits, bk);
   negativo(negatB, b, nb_bits, bk);
 
@@ -272,9 +274,10 @@ void multiply(LweSample* result, const LweSample* a, const LweSample* b, const i
   maximum(opB, negatB, b, nb_bits, bk);
 
   // Si solo uno de los dos es negativo, el resultado es negativo
-  is_negative(correctorA, a, nb_bits, bk);
-  is_negative(correctorB, b, nb_bits, bk);
-  bootsXOR(corrige, correctorA, correctorB, bk);
+  is_negative(isNegativeA, a, nb_bits, bk);
+  is_negative(isNegativeB, b, nb_bits, bk);
+  bootsXOR(corrige, isNegativeA, isNegativeB, bk);
+  // END LOGICA_SIGNO
 
   // Multiplica opA * opB
   for(int i = 0; i < (nb_bits/2); i++) {
@@ -297,12 +300,15 @@ void multiply(LweSample* result, const LweSample* a, const LweSample* b, const i
     }
   }
 
+
+  // BEGIN LOGICA_SIGNO
   // Determinamos si devolver el resultado positivo o negativo
   negativo(aux, result, nb_bits, bk);
 
   for(int i = 0; i < nb_bits; i++){
     bootsMUX(&result[i], &corrige[0], &aux[i], &result[i], bk);
   }
+  // END LOGICA_SIGNO
 
   delete_gate_bootstrapping_ciphertext_array(nb_bits, aux);
   delete_gate_bootstrapping_ciphertext_array(nb_bits, aux2);
@@ -310,8 +316,8 @@ void multiply(LweSample* result, const LweSample* a, const LweSample* b, const i
   delete_gate_bootstrapping_ciphertext_array(nb_bits, negatB);
   delete_gate_bootstrapping_ciphertext_array(nb_bits, opA);
   delete_gate_bootstrapping_ciphertext_array(nb_bits, opB);
-  delete_gate_bootstrapping_ciphertext_array(2, correctorA);
-  delete_gate_bootstrapping_ciphertext_array(2, correctorB);
+  delete_gate_bootstrapping_ciphertext_array(2, isNegativeA);
+  delete_gate_bootstrapping_ciphertext_array(2, isNegativeB);
   delete_gate_bootstrapping_ciphertext_array(2, corrige);
 }
 
@@ -378,9 +384,16 @@ void divide(LweSample* result, const LweSample* a, const LweSample* b, const int
 
   LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   LweSample* aux2 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  LweSample* negatA = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  LweSample* negatB = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  LweSample* opA = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  LweSample* opB = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
 
   LweSample* gt = new_gate_bootstrapping_ciphertext_array(2, bk->params);
   LweSample* bit = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+  LweSample* corrige = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+  LweSample* isNegativeA = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+  LweSample* isNegativeB = new_gate_bootstrapping_ciphertext_array(2, bk->params);
 
   LweSample* dividendo = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   LweSample* divisor = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
@@ -390,7 +403,8 @@ void divide(LweSample* result, const LweSample* a, const LweSample* b, const int
   for(int i = 0; i < nb_bits; i++){
     bootsCONSTANT(&aux[i], 0, bk);
     bootsCONSTANT(&aux2[i], 0, bk);
-    bootsCOPY(&dividendo[i], &a[i], bk);
+    bootsCONSTANT(&opA[i], 0, bk);
+    bootsCONSTANT(&opB[i], 0, bk);
     bootsCONSTANT(&divisor[i], 0, bk);
     bootsCONSTANT(&cociente[i], 0, bk);
     bootsCONSTANT(&resto[i], 0, bk);
@@ -403,7 +417,34 @@ void divide(LweSample* result, const LweSample* a, const LweSample* b, const int
 
   int padding = nb_bits/2;
 
-  shiftl(divisor, b, padding - 1, nb_bits, bk);
+
+
+  // BEGIN LOGICA_SIGNO
+  negativo(negatA, a, nb_bits, bk);
+  negativo(negatB, b, nb_bits, bk);
+
+  /**
+    Ponemos los dos números en positivo
+  */
+  maximum(opA, negatA, a, nb_bits, bk);
+  maximum(opB, negatB, b, nb_bits, bk);
+
+  // Si solo uno de los dos es negativo, el resultado es negativo
+  is_negative(isNegativeA, a, nb_bits, bk);
+  is_negative(isNegativeB, b, nb_bits, bk);
+  bootsXOR(corrige, isNegativeA, isNegativeB, bk);
+
+  for(int i = 0; i < nb_bits; i++){
+    bootsCOPY(&dividendo[i], &opA[i], bk);
+    bootsCOPY(&divisor[i], &opB[i], bk);
+  }
+  // END LOGICA_SIGNO
+
+  shiftl(aux, divisor, padding - 1, nb_bits, bk);
+  for(int i = 0; i < nb_bits; i++){
+    bootsCOPY(&divisor[i], &aux[i], bk);
+  }
+
 
   for(int i = 0; i < padding; i++) {
     // gt = dividendo >= divisor
@@ -436,6 +477,15 @@ void divide(LweSample* result, const LweSample* a, const LweSample* b, const int
 
   for(int i = 0; i < nb_bits; i++)
     bootsCOPY(&result[i], &cociente[i], bk);
+
+  // BEGIN LOGICA_SIGNO
+  // Determinamos si devolver el resultado positivo o negativo
+  negativo(aux, result, nb_bits, bk);
+
+  for(int i = 0; i < nb_bits; i++){
+    bootsMUX(&result[i], &corrige[0], &aux[i], &result[i], bk);
+  }
+  // END LOGICA_SIGNO
 
   delete_gate_bootstrapping_ciphertext_array(nb_bits, aux);
 }

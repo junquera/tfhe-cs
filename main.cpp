@@ -31,14 +31,14 @@ int main(){
 
 
     //generate encrypt the 16 bits of 2017
-   int16_t plaintext1 = 3;
+   int16_t plaintext1 = -5;
    LweSample* ciphertext1 = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
    for (int i=0; i<nb_bits; i++) {
        bootsSymEncrypt(&ciphertext1[i], (plaintext1>>i)&1, key);
    }
 
    //generate encrypt the 16 bits of 42
-   int16_t plaintext2 = -4;
+   int16_t plaintext2 = -2;
    LweSample* ciphertext2 = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
    for (int i=0; i<nb_bits; i++) {
        bootsSymEncrypt(&ciphertext2[i], (plaintext2>>i)&1, key);
@@ -87,11 +87,11 @@ int main(){
     bootsCONSTANT(&result[i], 0, bk);
 
    // minimum(result, ciphertext1, ciphertext2, 16, bk);
-   maximum  (result, ciphertext1, ciphertext2, nb_bits, bk);
+   // maximum  (result, ciphertext1, ciphertext2, nb_bits, bk);
    // sum(result, ciphertext1, ciphertext2, 16, bk);
    // resta(result, ciphertext1, ciphertext2, 16, bk);
    // multiply(result, ciphertext1, ciphertext2, nb_bits, bk);
-   // divide(result, ciphertext1, ciphertext2, nb_bits, bk);
+   divide(result, ciphertext1, ciphertext2, nb_bits, bk);
    // mayor_igual(result, ciphertext2, ciphertext1, nb_bits, bk);
   // is_negative(result, ciphertext1, nb_bits, bk);
    //export the 32 ciphertexts to a file (for the cloud)
