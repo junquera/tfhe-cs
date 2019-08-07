@@ -1,16 +1,16 @@
 #include <iostream>
 #include <tfhe/tfhe.h>
 #include <tfhe/tfhe_io.h>
+#include <ctime>
 #include "functions.h"
 
 using namespace std;
 
-int main(){
+void example(){
   // TODO ¿QUé es esto?
 	const int minimum_lambda = 110;
 
   // Número de bits con los que queremos trabajar
-  // IMPORTANTE PARA LA MULTIPLICACIÓN
   const int nb_bits = 16;
 
 	TFheGateBootstrappingParameterSet* params = new_default_gate_bootstrapping_parameters(minimum_lambda);
@@ -140,6 +140,161 @@ int main(){
     //clean up all pointers
     delete_gate_bootstrapping_ciphertext_array(nb_bits, answer);
     delete_gate_bootstrapping_secret_keyset(key);
+}
 
+int main(){
+
+  // TODO ¿QUé es esto?
+	const int minimum_lambda = 110;
+
+  cout << "op,bits,a,b,time(s)" << endl;
+
+  // Entre 4 y 32 bits
+  for(int i = 2; i < 6; i++){
+    // Número de bits con los que queremos trabajar
+    const int nb_bits = pow(2, i);
+
+  	TFheGateBootstrappingParameterSet* params = new_default_gate_bootstrapping_parameters(minimum_lambda);
+     //generate a random key
+      uint32_t seed[] = { 314, 1592, 657 };
+      tfhe_random_generator_setSeed(seed,3);
+      TFheGateBootstrappingSecretKeySet* key = new_random_gate_bootstrapping_secret_keyset(params);
+
+      //export the secret key to file for later use
+      FILE* secret_key = fopen("secret.key","wb");
+      export_tfheGateBootstrappingSecretKeySet_toFile(secret_key, key);
+      fclose(secret_key);
+
+      //export the cloud key to a file (for the cloud)
+      FILE* cloud_key = fopen("cloud.key","wb");
+      export_tfheGateBootstrappingCloudKeySet_toFile(cloud_key, &key->cloud);
+      fclose(cloud_key);
+
+
+      //generate encrypt the 16 bits of 2017
+     int32_t plaintext1 = rand() % ((int32_t) pow(2, nb_bits - 2));
+     LweSample* ciphertext1 = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
+     for (int i=0; i<nb_bits; i++) {
+         bootsSymEncrypt(&ciphertext1[i], (plaintext1>>i)&1, key);
+     }
+
+     //generate encrypt the 16 bits of 42
+     int32_t plaintext2 = rand() % ((int32_t) pow(2, nb_bits - 2));
+     LweSample* ciphertext2 = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
+     for (int i=0; i<nb_bits; i++) {
+         bootsSymEncrypt(&ciphertext2[i], (plaintext2>>i)&1, key);
+     }
+
+
+     //export the 2x16 ciphertexts to a file (for the cloud)
+     FILE* cloud_data = fopen("cloud.data","wb");
+     for (int i=0; i<nb_bits; i++)
+         export_gate_bootstrapping_ciphertext_toFile(cloud_data, &ciphertext1[i], params);
+     for (int i=0; i<nb_bits; i++)
+         export_gate_bootstrapping_ciphertext_toFile(cloud_data, &ciphertext2[i], params);
+     fclose(cloud_data);
+
+     //clean up all pointers
+     delete_gate_bootstrapping_ciphertext_array(nb_bits, ciphertext2);
+     delete_gate_bootstrapping_ciphertext_array(nb_bits, ciphertext1);
+
+      /**
+      SERVER!
+      */
+
+      //reads the cloud key from file
+     cloud_key = fopen("cloud.key","rb");
+     TFheGateBootstrappingCloudKeySet* bk = new_tfheGateBootstrappingCloudKeySet_fromFile(cloud_key);
+     fclose(cloud_key);
+
+     //if necessary, the params are inside the key
+     const TFheGateBootstrappingParameterSet* params2 = bk->params;
+
+     //read the 2x16 ciphertexts
+     ciphertext1 = new_gate_bootstrapping_ciphertext_array(nb_bits, params2);
+     ciphertext2 = new_gate_bootstrapping_ciphertext_array(nb_bits, params2);
+
+     //reads the 2x16 ciphertexts from the cloud file
+     cloud_data = fopen("cloud.data","rb");
+     for (int i=0; i<nb_bits; i++) import_gate_bootstrapping_ciphertext_fromFile(cloud_data, &ciphertext1[i], params2);
+     for (int i=0; i<nb_bits; i++) import_gate_bootstrapping_ciphertext_fromFile(cloud_data, &ciphertext2[i], params2);
+     fclose(cloud_data);
+
+     //do some operations on the ciphertexts: here, we will compute the
+     //minimum of the two
+     LweSample* result = new_gate_bootstrapping_ciphertext_array(nb_bits, params2);
+
+     for(int i=0; i < nb_bits; i++)
+      bootsCONSTANT(&result[i], 0, bk);
+
+    time_t t0, t;
+
+    t0 = time(NULL);
+    equal(result, ciphertext1, ciphertext2, nb_bits, bk);
+    t = time(NULL);
+    cout << "equal," << nb_bits << "," << t - t0 << endl;
+
+    t0 = time(NULL);
+    is_negative(result, ciphertext1, nb_bits, bk);
+    t = time(NULL);
+    cout << "is_negative," << nb_bits << "," << t - t0 << endl;
+
+    t0 = time(NULL);
+    minimum(result, ciphertext1, ciphertext2, nb_bits, bk);
+    t = time(NULL);
+    cout << "minimum," << nb_bits << "," << t - t0 << endl;
+
+    t0 = time(NULL);
+    maximum(result, ciphertext1, ciphertext2, nb_bits, bk);
+    t = time(NULL);
+    cout << "maximum," << nb_bits << "," << t - t0 << endl;
+
+    t0 = time(NULL);
+    sum(result, ciphertext1, ciphertext2, nb_bits, bk);
+    t = time(NULL);
+    cout << "sum," << nb_bits << "," << t - t0 << endl;
+
+    t0 = time(NULL);
+    negativo(result, ciphertext1, nb_bits, bk);
+    t = time(NULL);
+    cout << "negativo," << nb_bits << "," << t - t0 << endl;
+
+    t0 = time(NULL);
+    resta(result, ciphertext1, ciphertext2, nb_bits, bk);
+    t = time(NULL);
+    cout << "resta," << nb_bits << "," << t - t0 << endl;
+
+    t0 = time(NULL);
+    multiply(result, ciphertext1, ciphertext2, nb_bits, bk);
+    t = time(NULL);
+    cout << "multiply," << nb_bits << "," << t - t0 << endl;
+
+    t0 = time(NULL);
+    mayor(result, ciphertext1, ciphertext2, nb_bits, bk);
+    t = time(NULL);
+    cout << "mayor," << nb_bits << "," << t - t0 << endl;
+
+    t0 = time(NULL);
+    mayor_igual(result, ciphertext1, ciphertext2, nb_bits, bk);
+    t = time(NULL);
+    cout << "mayor_igual," << nb_bits << "," << t - t0 << endl;
+
+    t0 = time(NULL);
+    shiftl(result, ciphertext1, rand() % (nb_bits - 1), nb_bits, bk);
+    t = time(NULL);
+    cout << "shiftl," << nb_bits << "," << t - t0 << endl;
+
+    t0 = time(NULL);
+    shiftr(result, ciphertext1, rand() % (nb_bits - 1), nb_bits, bk);
+    t = time(NULL);
+    cout << "shiftr," << nb_bits << "," << t - t0 << endl;
+
+    t0 = time(NULL);
+    divide(result, ciphertext1, ciphertext2, nb_bits, bk);
+    t = time(NULL);
+    cout << "divide," << nb_bits << "," << t - t0 << endl;
+
+
+  }
 	return 0;
 }

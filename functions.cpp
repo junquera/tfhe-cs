@@ -216,7 +216,6 @@ void old_multiply(LweSample* result, const LweSample* a, const LweSample* b, con
       bootsCOPY(&result[j], &res_aux[j], bk);
     }
 
-    cout << "It: " << i+1 << endl;
   }
 
   delete_gate_bootstrapping_ciphertext_array(2, tmps);
@@ -454,7 +453,6 @@ void divide(LweSample* result, const LweSample* a, const LweSample* b, const int
 
   for(int i = 0; i < nb_bits; i++) {
     // gt = dividendo >= divisor
-    cout << i << endl;
     mayor_igual(gt, dividendo, divisor, 2*nb_bits, bk);
 
     bootsCOPY(&cociente[nb_bits-i-1], &gt[0], bk);
