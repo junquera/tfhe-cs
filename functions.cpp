@@ -494,3 +494,15 @@ void divide(LweSample* result, const LweSample* a, const LweSample* b, const int
 
   delete_gate_bootstrapping_ciphertext_array(nb_bits, aux);
 }
+
+void porDiez(LweSample* result, const LweSample* a, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
+  LweSample* auxA = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  LweSample* auxB = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+
+  shiftl(auxA, a, 3, nb_bits, bk);
+  shiftl(auxB, a, 1, nb_bits, bk);
+  sum(result, auxA, auxB, nb_bits, bk);
+}
+
+
+void entreDiez(LweSample* result, const LweSample* a, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){}

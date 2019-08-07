@@ -5,6 +5,8 @@
 #include <tfhe/tfhe.h>
 #include <tfhe/tfhe_io.h>
 
+
+// TODO Optimizaciones
 void compare_bit(LweSample* result, const LweSample* a, const LweSample* b, const LweSample* lsb_carry, LweSample* tmp, const TFheGateBootstrappingCloudKeySet* bk);
 
 void equal(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk);
@@ -35,4 +37,6 @@ void shiftr(LweSample* result, const LweSample* a, const int posiciones, const i
 
 void divide(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk);
 
+void porDiez(LweSample* result, const LweSample* a, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk);
+void entreDiez(LweSample* result, const LweSample* a, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk);
 #endif
