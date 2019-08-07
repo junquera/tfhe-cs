@@ -2,9 +2,6 @@
 #include "functions.h"
 using namespace std;
 
-void is_negative(LweSample* result, const LweSample* a, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
-  bootsCOPY(&result[0], &a[nb_bits-1], bk);
-}
 
 // elementary full comparator gate that is used to compare the i-th bit:
 //   input: ai and bi the i-th bit of a and b
@@ -13,6 +10,37 @@ void is_negative(LweSample* result, const LweSample* a, const int nb_bits, const
 void compare_bit(LweSample* result, const LweSample* a, const LweSample* b, const LweSample* lsb_carry, LweSample* tmp, const TFheGateBootstrappingCloudKeySet* bk) {
     bootsXNOR(tmp, a, b, bk);
     bootsMUX(result, tmp, lsb_carry, a, bk);
+}
+
+void is_negative(LweSample* result, const LweSample* a, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
+  bootsCOPY(&result[0], &a[nb_bits-1], bk);
+}
+
+// Devuelve -a
+void negativo(LweSample* result, const LweSample* a, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
+  LweSample* restando = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  LweSample* uno = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+
+  for(int i=0; i < nb_bits; i++){
+    bootsCONSTANT(&restando[i], 0, bk);
+    bootsCONSTANT(&uno[i], 0, bk);
+    bootsCONSTANT(&aux[i], 0, bk);
+  }
+  bootsCONSTANT(&uno[0], 1, bk);
+
+  // b negativo
+  for(int i = 0; i < nb_bits; i++)
+    bootsNOT(&restando[i], &a[i], bk);
+  sum(aux, restando, uno, nb_bits, bk);
+
+  for(int i=0; i < nb_bits; i++){
+    bootsCOPY(&result[i], &aux[i], bk);
+  }
+
+  delete_gate_bootstrapping_ciphertext_array(nb_bits, restando);
+  delete_gate_bootstrapping_ciphertext_array(nb_bits, uno);
+  delete_gate_bootstrapping_ciphertext_array(nb_bits, aux);
 }
 
 // Returns a == b
@@ -31,13 +59,31 @@ void equal(LweSample* result, const LweSample* a, const LweSample* b, const int 
 
 }
 
-
 // this function compares two multibit words, and puts the min in result
 void minimum(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {
     LweSample* tmps = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+    LweSample* aGreater = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+
+    LweSample* minimumMismoSigno = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+    LweSample* minimumOneNegative = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+    LweSample* oneNegative = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+    LweSample* negativoA = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+    LweSample* negativoB = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+
+    is_negative(negativoA, a, nb_bits, bk);
+    is_negative(negativoB, b, nb_bits, bk);
+
+    bootsXOR(&oneNegative[0], &negativoA[0], &negativoB[0], bk);
+
+    // a > b = soloOneNegative & is_negative(b)
+    bootsAND(&aGreater[0], &oneNegative[0], &negativoB[0], bk);
+    for(int i = 0; i < nb_bits; i++){
+      bootsMUX(&minimumOneNegative[i], &aGreater[0], &b[i], &a[i], bk);
+    }
 
     //initialize the carry to 0
     bootsCONSTANT(&tmps[0], 0, bk);
+
     //run the elementary comparator gate n times
     for (int i=0; i<nb_bits; i++) {
         compare_bit(&tmps[0], &a[i], &b[i], &tmps[0], &tmps[1], bk);
@@ -46,11 +92,17 @@ void minimum(LweSample* result, const LweSample* a, const LweSample* b, const in
     //tmps[0] is the result of the comparaison: 0 if a is larger, 1 if b is larger
     //select the max and copy it to the result
     for (int i=0; i<nb_bits; i++) {
-        bootsMUX(&result[i], &tmps[0], &b[i], &a[i], bk);
+        bootsMUX(&minimumMismoSigno[i], &tmps[0], &b[i], &a[i], bk);
+    }
+
+    // Resultado en funcion de si comparamos entre mismo signo o no
+    for (int i=0; i<nb_bits; i++) {
+        bootsMUX(&result[i], &oneNegative[0], &minimumOneNegative[i], &minimumMismoSigno[i], bk);
     }
 
     delete_gate_bootstrapping_ciphertext_array(2, tmps);
 }
+
 // this function compares two multibit words, and puts the min in result
 void maximum(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {
   LweSample* min = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
@@ -106,33 +158,6 @@ void sum(LweSample* result, const LweSample* a, const LweSample* b, const int nb
 
   delete_gate_bootstrapping_ciphertext_array(2, tmps_carry);
 
-}
-
-// Devuelve -a
-void negativo(LweSample* result, const LweSample* a, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
-  LweSample* restando = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
-  LweSample* uno = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
-  LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
-
-  for(int i=0; i < nb_bits; i++){
-    bootsCONSTANT(&restando[i], 0, bk);
-    bootsCONSTANT(&uno[i], 0, bk);
-    bootsCONSTANT(&aux[i], 0, bk);
-  }
-  bootsCONSTANT(&uno[0], 1, bk);
-
-  // b negativo
-  for(int i = 0; i < nb_bits; i++)
-    bootsNOT(&restando[i], &a[i], bk);
-  sum(aux, restando, uno, nb_bits, bk);
-
-  for(int i=0; i < nb_bits; i++){
-    bootsCOPY(&result[i], &aux[i], bk);
-  }
-
-  delete_gate_bootstrapping_ciphertext_array(nb_bits, restando);
-  delete_gate_bootstrapping_ciphertext_array(nb_bits, uno);
-  delete_gate_bootstrapping_ciphertext_array(nb_bits, aux);
 }
 
 void resta(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
@@ -242,20 +267,13 @@ void multiply(LweSample* result, const LweSample* a, const LweSample* b, const i
 
   /**
     Ponemos los dos números en positivo
-    Usamos minimum porque los numeros negativos se codifican con un 1 delante,
-    y se considerarían mayores que los negativos
   */
-  minimum(opA, negatA, a, nb_bits, bk);
-  minimum(opB, negatB, b, nb_bits, bk);
+  maximum(opA, negatA, a, nb_bits, bk);
+  maximum(opB, negatB, b, nb_bits, bk);
 
-  equal(correctorA, negatA, opA, nb_bits, bk);
-  equal(correctorB, negatB, opB, nb_bits, bk);
-
-  /**
-    Podría sustituirse todo por:
-    bootXOR(&correctorA[0], &a[nb_bits], &a[nb_bits], bk); ?
-  */
   // Si solo uno de los dos es negativo, el resultado es negativo
+  is_negative(correctorA, a, nb_bits, bk);
+  is_negative(correctorB, b, nb_bits, bk);
   bootsXOR(corrige, correctorA, correctorB, bk);
 
   // Multiplica opA * opB
