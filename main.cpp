@@ -91,7 +91,7 @@ void test(){
    // sum(result, ciphertext1, ciphertext2, 16, bk);
    // resta(result, ciphertext1, ciphertext2, 16, bk);
    // multiply(result, ciphertext1, ciphertext2, nb_bits, bk);
-   entreDiez(result, ciphertext1, nb_bits, bk);
+   porDiez(result, ciphertext1, nb_bits, bk);
    // divide(result, ciphertext1, ciphertext2, nb_bits, bk);
    // mayor_igual(result, ciphertext2, ciphertext1, nb_bits, bk);
   // is_negative(result, ciphertext1, nb_bits, bk);

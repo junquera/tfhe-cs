@@ -495,13 +495,27 @@ void divide(LweSample* result, const LweSample* a, const LweSample* b, const int
   delete_gate_bootstrapping_ciphertext_array(nb_bits, aux);
 }
 
-void porDiez(LweSample* result, const LweSample* n, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
+void porDiez(LweSample* result, const LweSample* a, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
   LweSample* auxA = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   LweSample* auxB = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
 
+  LweSample* n = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  LweSample* corrige = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+
+  negativo(auxA, a, nb_bits, bk);
+
+  // Trabajaremos con el positivo
+  maximum(n, auxA, a, nb_bits, bk);
+
+  is_negative(corrige, a, nb_bits, bk);
+
   shiftl(auxA, n, 3, nb_bits, bk);
   shiftl(auxB, n, 1, nb_bits, bk);
-  sum(result, auxA, auxB, nb_bits, bk);
+  sum(n, auxA, auxB, nb_bits, bk);
+
+  negativo(auxA, n, nb_bits, bk);
+  for(int i = 0; i < nb_bits; i++)
+    bootsMUX(&result[i], &corrige[0], &auxA[i], &n[i], bk);
 }
 
 
@@ -515,10 +529,20 @@ r = n - (((q << 2) + q) << 1)
 
 result = q + (r >> 9)
 */
-void entreDiez(LweSample* result, const LweSample* n, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
+void entreDiez(LweSample* result, const LweSample* a, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
   LweSample* q = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   LweSample* aux2 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+
+  LweSample* n = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  LweSample* corrige = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+
+  negativo(aux, a, nb_bits, bk);
+
+  // Trabajaremos con el positivo
+  maximum(n, aux, a, nb_bits, bk);
+
+  is_negative(corrige, a, nb_bits, bk);
 
   //  q = (n >> 1) + (n >> 2)
   shiftr(aux, n, 1, nb_bits, bk);
@@ -559,5 +583,11 @@ void entreDiez(LweSample* result, const LweSample* n, const int nb_bits, const T
 
   // result = q + (r >> 9)
   shiftr(aux, q, 9, nb_bits, bk);
-  sum(result, q, aux, nb_bits, bk);
+
+
+  sum(aux2, q, aux, nb_bits, bk);
+
+  negativo(aux, aux2, nb_bits, bk);
+  for(int i = 0; i < nb_bits; i++)
+    bootsMUX(&result[i], &corrige[0], &aux[i], &aux2[i], bk);
 }
