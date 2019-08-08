@@ -339,7 +339,6 @@ void mayor_igual(LweSample* result, const LweSample* a, const LweSample* b, cons
 
 }
 
-
 // TODO shiftr, shiftl, divide con negativos
 void shiftl(LweSample* result, const LweSample* a, const int posiciones, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
   LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
@@ -517,7 +516,6 @@ void porDiez(LweSample* result, const LweSample* a, const int nb_bits, const TFh
   for(int i = 0; i < nb_bits; i++)
     bootsMUX(&result[i], &corrige[0], &auxA[i], &n[i], bk);
 }
-
 
 /*
 q = (n >> 1) + (n >> 2)
