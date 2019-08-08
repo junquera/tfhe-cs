@@ -6,12 +6,12 @@
 
 using namespace std;
 
-void example(){
+void test(){
   // TODO ¿QUé es esto?
 	const int minimum_lambda = 110;
 
   // Número de bits con los que queremos trabajar
-  const int nb_bits = 16;
+  const int nb_bits = 32;
 
 	TFheGateBootstrappingParameterSet* params = new_default_gate_bootstrapping_parameters(minimum_lambda);
    //generate a random key
@@ -31,14 +31,14 @@ void example(){
 
 
     //generate encrypt the 16 bits of 2017
-   int16_t plaintext1 = 16384;
+   int16_t plaintext1 = 1638;
    LweSample* ciphertext1 = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
    for (int i=0; i<nb_bits; i++) {
        bootsSymEncrypt(&ciphertext1[i], (plaintext1>>i)&1, key);
    }
 
    //generate encrypt the 16 bits of 42
-   int16_t plaintext2 = 8192;
+   int16_t plaintext2 = 10;
    LweSample* ciphertext2 = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
    for (int i=0; i<nb_bits; i++) {
        bootsSymEncrypt(&ciphertext2[i], (plaintext2>>i)&1, key);
@@ -91,9 +91,12 @@ void example(){
    // sum(result, ciphertext1, ciphertext2, 16, bk);
    // resta(result, ciphertext1, ciphertext2, 16, bk);
    // multiply(result, ciphertext1, ciphertext2, nb_bits, bk);
-   divide(result, ciphertext1, ciphertext2, nb_bits, bk);
+   entreDiez(result, ciphertext1, nb_bits, bk);
+   // divide(result, ciphertext1, ciphertext2, nb_bits, bk);
    // mayor_igual(result, ciphertext2, ciphertext1, nb_bits, bk);
   // is_negative(result, ciphertext1, nb_bits, bk);
+
+
    //export the 32 ciphertexts to a file (for the cloud)
    FILE* answer_data = fopen("answer.data","wb");
    for (int i=0; i<nb_bits; i++) export_gate_bootstrapping_ciphertext_toFile(answer_data, &result[i], params2);
@@ -142,7 +145,7 @@ void example(){
     delete_gate_bootstrapping_secret_keyset(key);
 }
 
-int main(){
+void test_times(){
 
   // TODO ¿QUé es esto?
 	const int minimum_lambda = 110;
@@ -294,7 +297,22 @@ int main(){
     t = time(NULL);
     cout << "divide," << nb_bits << "," << t - t0 << endl;
 
+    t0 = time(NULL);
+    porDiez(result, ciphertext1, nb_bits, bk);
+    t = time(NULL);
+    cout << "porDiez," << nb_bits << "," << t - t0 << endl;
+
+    t0 = time(NULL);
+    entreDiez(result, ciphertext1, nb_bits, bk);
+    t = time(NULL);
+    cout << "entreDiez," << nb_bits << "," << t - t0 << endl;
+
 
   }
+}
+
+
+int main(){
+	test();
 	return 0;
 }

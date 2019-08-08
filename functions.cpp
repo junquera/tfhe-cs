@@ -495,14 +495,69 @@ void divide(LweSample* result, const LweSample* a, const LweSample* b, const int
   delete_gate_bootstrapping_ciphertext_array(nb_bits, aux);
 }
 
-void porDiez(LweSample* result, const LweSample* a, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
+void porDiez(LweSample* result, const LweSample* n, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
   LweSample* auxA = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   LweSample* auxB = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
 
-  shiftl(auxA, a, 3, nb_bits, bk);
-  shiftl(auxB, a, 1, nb_bits, bk);
+  shiftl(auxA, n, 3, nb_bits, bk);
+  shiftl(auxB, n, 1, nb_bits, bk);
   sum(result, auxA, auxB, nb_bits, bk);
 }
 
 
-void entreDiez(LweSample* result, const LweSample* a, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){}
+/*
+q = (n >> 1) + (n >> 2)
+q = q + (q >> 4)
+q = q + (q >> 8)
+q = q + (q >> 16)
+q = q >> 3
+r = n - (((q << 2) + q) << 1)
+
+result = q + (r >> 9)
+*/
+void entreDiez(LweSample* result, const LweSample* n, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
+  LweSample* q = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  LweSample* aux2 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+
+  //  q = (n >> 1) + (n >> 2)
+  shiftr(aux, n, 1, nb_bits, bk);
+  shiftr(aux2, n, 2, nb_bits, bk);
+  sum(q, aux, aux2, nb_bits, bk);
+
+  // q = q + (q >> 4)
+  shiftr(aux, q, 4, nb_bits, bk);
+  sum(aux2, aux, q, nb_bits, bk);
+  for(int i=0; i < nb_bits; i++)
+    bootsCOPY(&q[i], &aux2[i], bk);
+
+  // q = q + (q >> 8)
+  shiftr(aux, q, 8, nb_bits, bk);
+  sum(aux2, aux, q, nb_bits, bk);
+  for(int i=0; i < nb_bits; i++)
+    bootsCOPY(&q[i], &aux2[i], bk);
+
+  // q = q + (q >> 16)
+  shiftr(aux, q, 16, nb_bits, bk);
+  sum(aux2, aux, q, nb_bits, bk);
+  for(int i=0; i < nb_bits; i++)
+    bootsCOPY(&q[i], &aux2[i], bk);
+
+  // q = q >> 3
+  shiftr(aux, q, 3, nb_bits, bk);
+  for(int i=0; i < nb_bits; i++)
+    bootsCOPY(&q[i], &aux[i], bk);
+
+  for(int i=0; i < nb_bits; i++)
+    bootsCOPY(&result[i], &n[i], bk);
+
+  // r = n - (((q << 2) + q) << 1)
+  shiftl(aux, q, 2, nb_bits, bk);
+  sum(aux2, aux, q, nb_bits, bk);
+  shiftl(aux, aux2, 1, nb_bits, bk);
+  resta(aux2, n, aux, nb_bits, bk);
+
+  // result = q + (r >> 9)
+  shiftr(aux, q, 9, nb_bits, bk);
+  sum(result, q, aux, nb_bits, bk);
+}
