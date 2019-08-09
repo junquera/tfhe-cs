@@ -1,0 +1,8 @@
+1. Pasar datos a CSV y eliminar los meses 13
+2. Determinar mes mínimo y mes máximo (para ordenar los datos)
+
+	2.1. Ordenar datos de un año
+	2.2. Darle un valor entero a cada mes
+	2.3. Hacer la recta con estos meses ordenados
+
+3. Recta de regresión de cada uno
