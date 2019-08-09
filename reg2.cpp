@@ -1,6 +1,5 @@
-#include "functions.h"
-#include <vector>
-using namespace std;
+#include "reg2.h"
+
 /*
 
 i = 0
@@ -96,6 +95,8 @@ void regresion_cuadratica(LweSample* a, LweSample* b, LweSample* c, const vector
 
   cout << "Variables inicializadas" << endl;
 
+  time_t t0 = time(NULL);
+
   for(int ci=0 ; ci < values; ci++){
     LweSample* x = xs[ci];
     LweSample* y = ys[ci];
@@ -127,7 +128,7 @@ void regresion_cuadratica(LweSample* a, LweSample* b, LweSample* c, const vector
   h_pow(k2, k, 2, nb_bits, bk);
   h_pow(l2, k, 2, nb_bits, bk);
 
-  cout << "Cuadrados i,j,k,l" << endl;
+  cout << "Cuadrados i,j,k,l" << " (" << time(NULL) - t0 << "s)" << endl;
 
   LweSample* il = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   LweSample* jk = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
@@ -149,7 +150,7 @@ void regresion_cuadratica(LweSample* a, LweSample* b, LweSample* c, const vector
   multiply(vl, v, l, nb_bits, bk);
   multiply(wj, w, j, nb_bits, bk);
 
-  cout << "Duplas" << endl;
+  cout << "Duplas" << " (" << time(NULL) - t0 << "s)" << endl;
 
   LweSample* ijkl = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   LweSample* i2l2 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
@@ -173,7 +174,7 @@ void regresion_cuadratica(LweSample* a, LweSample* b, LweSample* c, const vector
   multiply_float(jl2n, jl, ln, float_bits, nb_bits, bk);
   multiply_float(k2ln, k2, ln, float_bits, nb_bits, bk);
 
-  cout << "Complejos" << endl;
+  cout << "Complejos" << " (" << time(NULL) - t0 << "s)" << endl;
 
   /*
     c = (ul - wj)/(ln - j2)
@@ -201,7 +202,7 @@ void regresion_cuadratica(LweSample* a, LweSample* b, LweSample* c, const vector
   for(int ci=0; ci < nb_bits; ci++)
     bootsCOPY(&c[ci], &aux1[ci], bk);
 
-  cout << "Pre r" << endl;
+  cout << "Pre r" << " (" << time(NULL) - t0 << "s)" << endl;
 
   // r = (j2k2-2(ijkl)+i2l2)/(jl2n - k2ln - j3l + j2k2)
   LweSample* r = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
@@ -220,7 +221,7 @@ void regresion_cuadratica(LweSample* a, LweSample* b, LweSample* c, const vector
   for(int ci=0; ci < nb_bits; ci++)
     bootsCOPY(&c[ci], &aux2[ci], bk);
 
-  cout << "c" << endl;
+  cout << "c" << " (" << time(NULL) - t0 << "s)" << endl;
 
   /*
     b = (vl - kw + cjk - cil)/(jl - k2)
@@ -236,17 +237,17 @@ void regresion_cuadratica(LweSample* a, LweSample* b, LweSample* c, const vector
   resta(aux1, jl, k2, nb_bits, bk);
   divide_float(b, aux3, aux1, float_bits, nb_bits, bk);
 
-  cout << "b" << endl;
+  cout << "b" << " (" << time(NULL) - t0 << "s)" << endl;
 
   /*
     a = (w - (bk + cj)) / l
   */
   multiply_float(aux1, b, k, float_bits, nb_bits, bk);
   multiply_float(aux2, c, j, float_bits, nb_bits, bk);
-  suma(aux3, aux1, aux2, nb_bits, bk);
+  sum(aux3, aux1, aux2, nb_bits, bk);
   resta(aux1, w, aux3, nb_bits, bk);
   divide_float(a, aux1, l, float_bits, nb_bits, bk);
 
-  cout << "a" << endl;
+  cout << "a" << " (" << time(NULL) - t0 << "s)" << endl;
 
 }
