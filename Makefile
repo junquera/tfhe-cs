@@ -1,5 +1,5 @@
 all:
 	bash build.sh
 
-lauch: all
+launch: all
 	./main

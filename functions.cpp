@@ -589,3 +589,30 @@ void entreDiez(LweSample* result, const LweSample* a, const int nb_bits, const T
   for(int i = 0; i < nb_bits; i++)
     bootsMUX(&result[i], &corrige[0], &aux[i], &aux2[i], bk);
 }
+
+
+void pow(LweSample* result, const LweSample* a, const int n, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
+
+  LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+
+  LweSample* cero = new_gate_bootstrapping_ciphertext_array(1, bk->params);
+  bootsCONSTANT(&cero[0], 0, bk);
+
+  // Inicializando result
+  for(int i=0; i < nb_bits; i++){
+    if(n > 0)
+      bootsCOPY(&result[i], &a[i], bk);
+    else
+      bootsCONSTANT(&result[i], 0, bk);
+  }
+
+  if(n<=0)
+    bootsCONSTANT(&result[0], 1, bk);
+
+  for(int i = 0; i < n-1; i++){
+    multiply(aux, result, a, nb_bits, bk);
+    for(int j = 0; j < nb_bits; j++)
+      bootsCOPY(&result[j], &aux[j], bk);
+  }
+
+}

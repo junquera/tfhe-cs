@@ -86,15 +86,19 @@ void test(){
    for(int i=0; i < nb_bits; i++)
     bootsCONSTANT(&result[i], 0, bk);
 
+  time_t t0 = time(NULL);
    // minimum(result, ciphertext1, ciphertext2, 16, bk);
    // maximum  (result, ciphertext1, ciphertext2, nb_bits, bk);
    // sum(result, ciphertext1, ciphertext2, 16, bk);
    // resta(result, ciphertext1, ciphertext2, 16, bk);
    // multiply(result, ciphertext1, ciphertext2, nb_bits, bk);
-   porDiez(result, ciphertext1, nb_bits, bk);
+   pow(result, ciphertext2, 2, nb_bits, bk);
    // divide(result, ciphertext1, ciphertext2, nb_bits, bk);
    // mayor_igual(result, ciphertext2, ciphertext1, nb_bits, bk);
   // is_negative(result, ciphertext1, nb_bits, bk);
+
+	time_t t = time(NULL);
+	cout << "Time (" << nb_bits << " bits): " <<  t - t0 << "s" << endl;
 
 
    //export the 32 ciphertexts to a file (for the cloud)
@@ -306,7 +310,6 @@ void test_times(){
     entreDiez(result, ciphertext1, nb_bits, bk);
     t = time(NULL);
     cout << "entreDiez," << nb_bits << "," << t - t0 << endl;
-
 
   }
 }
