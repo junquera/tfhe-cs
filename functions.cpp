@@ -2,6 +2,7 @@
 using namespace std;
 
 
+// TODO Limpiar variables (delete_gate_boots...)
 // elementary full comparator gate that is used to compare the i-th bit:
 //   input: ai and bi the i-th bit of a and b
 //          lsb_carry: the result of the comparison on the lowest bits
@@ -606,7 +607,7 @@ void entreDiez(LweSample* result, const LweSample* a, const int nb_bits, const T
 }
 
 
-void pow(LweSample* result, const LweSample* a, const int n, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
+void h_pow(LweSample* result, const LweSample* a, const int n, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
 
   LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
 
