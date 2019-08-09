@@ -1,4 +1,3 @@
-
 #include "functions.h"
 using namespace std;
 
@@ -527,6 +526,22 @@ r = n - (((q << 2) + q) << 1)
 
 result = q + (r >> 9)
 */
+
+void multiply_float(LweSample* result, const LweSample* a, const LweSample* b, const int float_bits, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
+  LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+
+  multiply(aux, a, b, nb_bits, bk);
+  shiftr(result, aux, float_bits, nb_bits, bk);
+
+}
+
+void divide_float(LweSample* result, const LweSample* a, const LweSample* b, const int float_bits, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
+  LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  shiftl(aux, a, float_bits, nb_bits, bk);
+  divide(result, aux, b, nb_bits, bk);
+}
+
+
 void entreDiez(LweSample* result, const LweSample* a, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
   LweSample* q = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
@@ -615,4 +630,20 @@ void pow(LweSample* result, const LweSample* a, const int n, const int nb_bits, 
       bootsCOPY(&result[j], &aux[j], bk);
   }
 
+}
+
+/*
+Función para transformar un float a un entero para
+trabajar con criptografía Homomórfica, con float_bits BITS de precisión
+*/
+int32_t float2hint(float i, int float_bits){
+  return (int32_t) (i * pow(2, float_bits));
+}
+
+/*
+Función para recuperar un float de un entero tras
+trabajar con criptografía Homomórfica, con float_bits BITS de precisión
+*/
+float hint2float(int32_t i, int float_bits){
+  return i/pow(2, float_bits);
 }

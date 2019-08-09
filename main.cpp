@@ -29,16 +29,19 @@ void test(){
     export_tfheGateBootstrappingCloudKeySet_toFile(cloud_key, &key->cloud);
     fclose(cloud_key);
 
+		int float_bits = 7;
+		float a1 = 26.3;
+		float a2 = 4.8;
 
     //generate encrypt the 16 bits of 2017
-   int16_t plaintext1 = 1638;
+   int32_t plaintext1 = float2hint(a1, float_bits);
    LweSample* ciphertext1 = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
    for (int i=0; i<nb_bits; i++) {
        bootsSymEncrypt(&ciphertext1[i], (plaintext1>>i)&1, key);
    }
 
    //generate encrypt the 16 bits of 42
-   int16_t plaintext2 = 10;
+   int32_t plaintext2 = float2hint(a2, float_bits);
    LweSample* ciphertext2 = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
    for (int i=0; i<nb_bits; i++) {
        bootsSymEncrypt(&ciphertext2[i], (plaintext2>>i)&1, key);
@@ -92,7 +95,9 @@ void test(){
    // sum(result, ciphertext1, ciphertext2, 16, bk);
    // resta(result, ciphertext1, ciphertext2, 16, bk);
    // multiply(result, ciphertext1, ciphertext2, nb_bits, bk);
-   pow(result, ciphertext2, 2, nb_bits, bk);
+   // multiply_float(result, ciphertext1, ciphertext2, float_bits, nb_bits, bk);
+   divide_float(result, ciphertext1, ciphertext2, float_bits, nb_bits, bk);
+   // pow(result, ciphertext2, 2, nb_bits, bk);
    // divide(result, ciphertext1, ciphertext2, nb_bits, bk);
    // mayor_igual(result, ciphertext2, ciphertext1, nb_bits, bk);
   // is_negative(result, ciphertext1, nb_bits, bk);
@@ -135,13 +140,16 @@ void test(){
     fclose(answer_data);
 
     //decrypt and rebuild the 16-bit plaintext answer
-    int16_t int_answer = 0;
+    int32_t int_answer = 0;
     for (int i=0; i<nb_bits; i++) {
         int ai = bootsSymDecrypt(&answer[i], key);
         int_answer |= (ai<<i);
     }
 
-    printf("And the result is: %d\n",int_answer);
+		float float_answer = hint2float(int_answer, float_bits);
+
+    printf("And the result is: %f\n",float_answer);
+    // printf("And the result is: %d\n",int_answer);
     printf("I hope you remember what was the question!\n");
 
     //clean up all pointers
