@@ -27,8 +27,6 @@ int32_t HClient::descifra(LweSample* input){
 	return int_answer;
 };
 
-
-
 void HClient::exportCloudKeyToFile(string name){
 		//export the cloud key to a file (for the cloud)
 	  FILE* cloud_key = fopen(name.c_str(),"wb");
