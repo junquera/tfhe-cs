@@ -1,17 +1,18 @@
 #include "client.h"
 
 HClient::HClient(int _nb_bits, int _float_bits){
-	string keyFileName = "secret.key";
 
 	nb_bits = _nb_bits;
 	float_bits = _float_bits;
+	
+};
 
-	if(exists_file(keyFileName)){
-		loadSecretKeyFromFile(keyFileName, key);
-	} else {
-		generaClaves(key);
-	}
+void HClient::genKeys() {
+	generaClaves(key);
+};
 
+void HClient::setKeysFromFile(string keyFileName){
+	loadSecretKeyFromFile(keyFileName, key);
 };
 
 void HClient::cifra(LweSample* result, int32_t input){

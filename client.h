@@ -8,6 +8,8 @@
 class HClient {
 	public:
 		HClient(int _nb_bits, int _float_bits);
+		void genKeys();
+		void setKeysFromFile(string keyFileName);
 		void cifra(LweSample* answer, int32_t input);
 		int32_t descifra(LweSample* answer);
 		void exportSecretKeyToFile(string name);
