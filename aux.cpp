@@ -50,7 +50,7 @@ void generaClaves(TFheGateBootstrappingSecretKeySet* &key) {
 	uint32_t seed[] = { 314, 1592, 657 };
 	tfhe_random_generator_setSeed(seed, 3);
 	key = new_random_gate_bootstrapping_secret_keyset(params);
-  
+
 }
 
 void loadSecretKeyFromFile(string keyFileName, TFheGateBootstrappingSecretKeySet* &key){
@@ -61,7 +61,7 @@ void loadSecretKeyFromFile(string keyFileName, TFheGateBootstrappingSecretKeySet
 }
 
 void loadCloudKeyFromFile(string keyFileName, TFheGateBootstrappingCloudKeySet* &key){
-  FILE* cloud_key = fopen("cloud.key","rb");
+  FILE* cloud_key = fopen(keyFileName.c_str(),"rb");
   key = new_tfheGateBootstrappingCloudKeySet_fromFile(cloud_key);
   fclose(cloud_key);
 }

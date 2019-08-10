@@ -8,8 +8,6 @@ Operaciones de regresión cuadrática:
 
 TOTAL: 11424 segundos = 190 minutos = 3.17 horas
 */
-
-
 HServer::HServer(int nb_bits, int float_bits) {
   nb_bits = nb_bits;
   float_bits = float_bits;
@@ -368,6 +366,16 @@ void RegresionCuadratica::calcula(LweSample* a, LweSample* b, LweSample* c, cons
   calcA(a, b, c);
 };
 
+/*
+  suma = 16
+  div = 4
+
+  t_suma = 6
+  t_div = 1386
+
+  t_total = t_div*div + t_suma*suma
+          = 5944 + 96 = 6040s = 1.7 horas
+*/
 void RegresionCuadratica::calcC(LweSample* c){
 
   /*
@@ -420,6 +428,18 @@ void RegresionCuadratica::calcC(LweSample* c){
 
 };
 
+/*
+  suma = 4
+  multi = 2
+  div = 1
+
+  t_suma = 6
+  t_multi = 93
+  t_div = 1386
+
+  t_total = t_div*div + t_multi*multi + t_suma*suma
+          = 1386 + 186 + 24 = 1596s = 26.6 minutos
+*/
 void RegresionCuadratica::calcB(LweSample* b, LweSample* c){
 
   bool exists_b = retrieveResult(results_path + "/" + "b", b, nb_bits, bk->params);
@@ -444,6 +464,18 @@ void RegresionCuadratica::calcB(LweSample* b, LweSample* c){
 
 };
 
+/*
+  suma = 2
+  multi = 2
+  div = 1
+
+  t_suma = 6
+  t_multi = 93
+  t_div = 1386
+
+  t_total = t_div*div + t_multi*multi + t_suma*suma
+          = 1386 + 186 + 12 = 1584s = 26.4 minutos
+*/
 void RegresionCuadratica::calcA(LweSample* a, LweSample* b, LweSample* c){
 
   /*
