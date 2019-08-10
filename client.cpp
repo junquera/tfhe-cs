@@ -46,7 +46,13 @@ int32_t descifra(LweSample* answer, int nb_bits, TFheGateBootstrappingSecretKeyS
 	return int_answer;
 }
 
-void generaClaves(TFheGateBootstrappingSecretKeySet* &key, TFheGateBootstrappingParameterSet* &params){
+void cifra(LweSample* answer, int32_t input, int nb_bits, TFheGateBootstrappingSecretKeySet* key){
+	for(int i = 0; i < nb_bits; i++) {
+		bootsSymEncrypt(&result[i], (input>>i)&1, key);
+	}
+}
+
+void generaClaves(TFheGateBootstrappingSecretKeySet* &key){
 
 	if(exists_file("secret.key")){
 		//reads the cloud key from file
@@ -54,13 +60,11 @@ void generaClaves(TFheGateBootstrappingSecretKeySet* &key, TFheGateBootstrapping
 		key = new_tfheGateBootstrappingSecretKeySet_fromFile(secret_key);
 		fclose(secret_key);
 
-		//if necessary, the params are inside the key
-		params = key->params;
 	} else {
 		// TODO ¿QUé es esto?
 		const int minimum_lambda = 110;
 
-		params = new_default_gate_bootstrapping_parameters(minimum_lambda);
+		TFheGateBootstrappingParameterSet* params = new_default_gate_bootstrapping_parameters(minimum_lambda);
 		//generate a random key
 		uint32_t seed[] = { 314, 1592, 657 };
 		tfhe_random_generator_setSeed(seed, 3);
@@ -79,7 +83,6 @@ void generaClaves(TFheGateBootstrappingSecretKeySet* &key, TFheGateBootstrapping
 
 }
 
-
 // Valores [ (x1, y1), ... , (xn, yn) ]
 float cabogata_1417[48][2] = {
   {1.0, 12.2}, {2.0, 10.8}, {3.0, 14.5}, {4.0, 15.6}, {5.0, 20.4}, {6.0, 24.1}, {7.0, 25.8}, {8.0, 26.7}, {9.0, 23.7}, {10.0, 19.3}, {11.0, 16.4}, {12.0, 13.5},
@@ -88,19 +91,28 @@ float cabogata_1417[48][2] = {
   {1.0, 13.1}, {2.0, 13.5}, {3.0, 14.5}, {4.0, 17.9}, {5.0, 21.4}, {6.0, 24.7}, {7.0, 28.7}, {8.0, 28.3}, {9.0, 23.7}, {10.0, 21.1}, {11.0, 17.3}, {12.0, 15.2}
 };
 
+float finisterre_1417[48][2] = {
+	{1.0, 11.4}, {2.0, 10.9}, {3.0,12.4), {4.0, 14.9), {5.0, 15.1), {6.0, 18.3), {7.0, 19.3), {8.0, 19.9), {9.0, 20.8), {10.0, 18.8), {11.0, 13.5), {12.0, 11.3),
+	{1.0, 10.7}, {2.0, 10.0), {3.0, 11.7), {4.0, 14.8), {5.0, 15.9), {6.0, 17.9), {7.0, 20.0), {8.0, 19.2), {9.0, 17.6), {10.0, 16.4), {11.0, 15.5), {12.0, 14.1),
+	{1.0, 12.1}, {2.0, 11.0), {3.0, 11.1), {4.0, 12.1), {5.0, 15.2), {6.0, 17.6), {7.0, 19.8), {8.0, 20.1), {9.0, 18.7), {10.0, 16.7), {11.0, 13.0), {12.0, 13.1),
+	{1.0, 10.4}, {2.0, 11.8), {3.0, 12.9), {4.0, 14.3), {5.0, 17.4), {6.0, 18.7), {7.0, 19.9), {8.0, 19.8), {9.0, 18.3), {10.0, 17.8), {11.0, 13.0), {12.0, 11.2)
+};
+
+
 void regresion(float[][] values){
 
 	// Generación de claves y parametros
 	TFheGateBootstrappingSecretKeySet* key;
+
+	generaClaves(key);
+
 	TFheGateBootstrappingParameterSet* params;
-
-	generaClaves(key, params);
-
+	//if necessary, the params are inside the key
+	params = key->params;
 
   // Número de bits con los que queremos trabajar
   const int nb_bits = 32;
 	const int float_bits = 7;
-
 
 	vector<LweSample*> xs, ys;
 
