@@ -1,27 +1,10 @@
-#include "aux.h"
-#include "reg2.h"
-
-class HClient {
-	public:
-		HClient(int nb_bits, int float_bits);
-		void cifra(LweSample* answer, int32_t input);
-		int32_t descifra(LweSample* answer);
-		void loadKeyFromFile(string keyFileName, TFheGateBootstrappingSecretKeySet* &key);
-		void generaClaves(TFheGateBootstrappingSecretKeySet* &key);
-		void exportCloudKey(string name);
-		void exportSecretKey(string name);
-		void getCloudKey(TFheGateBootstrappingCloudKeySet* &cloudKey);
-	private:
-		int nb_bits;
-		int float_bits;
-		TFheGateBootstrappingSecretKeySet* key;
-};
+#include "client.h"
 
 HClient::HClient(int nb_bits, int float_bits){
 	string keyFileName = "secret.key";
 
 	if(exists_file(keyFileName)){
-		loadKeyFromFile(keyFileName, key);
+		loadSecretKeyFromFile(keyFileName, key);
 	} else {
 		generaClaves(key);
 	}
@@ -44,32 +27,16 @@ int32_t HClient::descifra(LweSample* input){
 	return int_answer;
 };
 
-void HClient::loadKeyFromFile(string keyFileName, TFheGateBootstrappingSecretKeySet* &key){
-	//reads the cloud key from file
-	FILE* secret_key = fopen(keyFileName.c_str(),"rb");
-	key = new_tfheGateBootstrappingSecretKeySet_fromFile(secret_key);
-	fclose(secret_key);
-};
 
-void HClient::generaClaves(TFheGateBootstrappingSecretKeySet* &key){
-	// TODO ¿QUé es esto?
-	const int minimum_lambda = 110;
 
-	TFheGateBootstrappingParameterSet* params = new_default_gate_bootstrapping_parameters(minimum_lambda);
-	//generate a random key
-	uint32_t seed[] = { 314, 1592, 657 };
-	tfhe_random_generator_setSeed(seed, 3);
-	key = new_random_gate_bootstrapping_secret_keyset(params);
-};
-
-void HClient::exportCloudKey(string name){
+void HClient::exportCloudKeyToFile(string name){
 		//export the cloud key to a file (for the cloud)
 	  FILE* cloud_key = fopen(name.c_str(),"wb");
 	  export_tfheGateBootstrappingCloudKeySet_toFile(cloud_key, &key->cloud);
 	  fclose(cloud_key);
 };
 
-void HClient::exportSecretKey(string name){
+void HClient::exportSecretKeyToFile(string name){
 	//export the secret key to file for later use
 	FILE* secret_key = fopen(name.c_str(),"wb");
 	export_tfheGateBootstrappingSecretKeySet_toFile(secret_key, key);

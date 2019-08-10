@@ -6,4 +6,4 @@ export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:$TFHE_PREFIX/include
 export LIBRARY_PATH=$LIBRARY_PATH:$TFHE_PREFIX/lib
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$TFHE_PREFIX/lib
 
-g++ main.cpp functions.cpp reg2.cpp functions.h reg2.h client.cpp server.cpp aux.cpp aux.h  -o main -ltfhe-fftw
+g++ main.cpp functions.cpp reg2.cpp functions.h reg2.h client.cpp client.h server.cpp server.h aux.cpp aux.h  -o main -ltfhe-fftw
