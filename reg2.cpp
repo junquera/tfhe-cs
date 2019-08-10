@@ -1,44 +1,53 @@
 #include "reg2.h"
 
+
+/**
+  Operaciones de regresión cuadrática:
+    - 6       division        1386 segundos/operación
+    - 32      multiplicacion  93 segundos/operación
+    - 22      suma/resta      6 segundos/operación
+
+  TOTAL: 11424 segundos = 190 minutos = 3.17 horas
+*/
+
 /*
+  i = 0
+  j = 0
+  k = 0
+  l = 0
 
-i = 0
-j = 0
-k = 0
-l = 0
+  u = 0
+  v = 0
+  w = 0
 
-u = 0
-v = 0
-w = 0
+  n = len(xys)
 
-n = len(xys)
+  for x, y in xys:
+      i += x
+      j += x**2
+      k += x**3
+      l += x**4
 
-for x, y in xys:
-    i += x
-    j += x**2
-    k += x**3
-    l += x**4
-
-    u += y
-    v += (x * y)
-    w += ((x**2) * y)
+      u += y
+      v += (x * y)
+      w += ((x**2) * y)
 
 
-print("i", i)
-print("j", j)
-print("k", k)
-print("l", l)
-print("u", u)
-print("v", v)
-print("w", w)
+  print("i", i)
+  print("j", j)
+  print("k", k)
+  print("l", l)
+  print("u", u)
+  print("v", v)
+  print("w", w)
 
-c = (u*l - w*j)/(l*n - j**2)
-c += (j*k*l*v - j*(k**2)*w - i*(l**2)*v + i*k*l*w)/(j*(l**2)*n - (k**2)*l*n - (j**3)*l + (j**2)*(k**2))
-r = ((j**2)*(k**2)-2*(i*j*k*l)+(i**2)*(l**2))/(j*(l**2)*n - (k**2)*l*n - (j**3)*l + (j**2)*(k**2))
-c = c / (1 - r)
+  c = (u*l - w*j)/(l*n - j**2)
+  c += (j*k*l*v - j*(k**2)*w - i*(l**2)*v + i*k*l*w)/(j*(l**2)*n - (k**2)*l*n - (j**3)*l + (j**2)*(k**2))
+  r = ((j**2)*(k**2)-2*(i*j*k*l)+(i**2)*(l**2))/(j*(l**2)*n - (k**2)*l*n - (j**3)*l + (j**2)*(k**2))
+  c = c / (1 - r)
 
-b = (v*l - k*w + c*j*k - c*i*l)/(j*l - k**2)
-a = (w - b*k - c*j) / l
+  b = (v*l - k*w + c*j*k - c*i*l)/(j*l - k**2)
+  a = (w - b*k - c*j) / l
 
 */
 
@@ -97,6 +106,17 @@ void regresion_cuadratica(LweSample* a, LweSample* b, LweSample* c, const vector
 
   time_t t0 = time(NULL);
 
+  /*
+    for x, y in xys:
+      i += x
+      j += x**2
+      k += x**3
+      l += x**4
+
+      u += y
+      v += (x * y)
+      w += ((x**2) * y)
+  */
   for(int ci=0 ; ci < values; ci++){
     LweSample* x = xs[ci];
     LweSample* y = ys[ci];
@@ -105,17 +125,39 @@ void regresion_cuadratica(LweSample* a, LweSample* b, LweSample* c, const vector
     LweSample* x3 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
     LweSample* x4 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
 
-    multiply(x2, x, x, nb_bits, bk);
-    multiply(x3, x2, x, nb_bits, bk);
-    multiply(x4, x2, x2, nb_bits, bk);
+    multiply_float(x2, x, x, float_bits, nb_bits, bk);
+    multiply_float(x3, x2, x, float_bits, nb_bits, bk);
+    multiply_float(x4, x2, x2, float_bits, nb_bits, bk);
+
+    sum(aux1, i, x, nb_bits, bk);
+    sum(aux1, j, x2, nb_bits, bk);
+    sum(aux1, k, x3, nb_bits, bk);
+    sum(aux1, l, x4, nb_bits, bk);
+
+    for(int cj=0; cj < nb_bits; cj++){
+      bootsCOPY(&i[cj], &aux1[cj], bk);
+      bootsCOPY(&j[cj], &aux2[cj], bk);
+      bootsCOPY(&k[cj], &aux3[cj], bk);
+      bootsCOPY(&l[cj], &aux4[cj], bk);
+    }
 
     LweSample* xy = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
     LweSample* x2y = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
 
-    multiply(xy, x, y, nb_bits, bk);
-    multiply(x2y, x2, y, nb_bits, bk);
+    multiply_float(xy, x, y, float_bits, nb_bits, bk);
+    multiply_float(x2y, x2, y, float_bits, nb_bits, bk);
 
-    cout << "xys" << ci << endl;
+    sum(aux1, u, y, nb_bits, bk);
+    sum(aux2, v, xy, nb_bits, bk);
+    sum(aux3, w, x2y, nb_bits, bk);
+
+    for(int cj=0; cj < nb_bits; cj++){
+      bootsCOPY(&u[cj], &aux1[cj], bk);
+      bootsCOPY(&v[cj], &aux2[cj], bk);
+      bootsCOPY(&w[cj], &aux3[cj], bk);
+    }
+
+    cout << "xys" << ci << " (" << time(NULL) - t0 << "s)" << endl;
   }
 
   LweSample* i2 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
@@ -140,15 +182,15 @@ void regresion_cuadratica(LweSample* a, LweSample* b, LweSample* c, const vector
   LweSample* vl = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   LweSample* wj = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
 
-  multiply(il, i, l, nb_bits, bk);
-  multiply(jk, j, k, nb_bits, bk);
-  multiply(jl, j, l, nb_bits, bk);
-  multiply(kw, k, w, nb_bits, bk);
-  multiply(kv, k, v, nb_bits, bk);
-  multiply(ln, l, n, nb_bits, bk);
-  multiply(ul, u, l, nb_bits, bk);
-  multiply(vl, v, l, nb_bits, bk);
-  multiply(wj, w, j, nb_bits, bk);
+  multiply_float(il, i, l, float_bits, nb_bits, bk);
+  multiply_float(jk, j, k, float_bits, nb_bits, bk);
+  multiply_float(jl, j, l, float_bits, nb_bits, bk);
+  multiply_float(kw, k, w, float_bits, nb_bits, bk);
+  multiply_float(kv, k, v, float_bits, nb_bits, bk);
+  multiply_float(ln, l, n, float_bits, nb_bits, bk);
+  multiply_float(ul, u, l, float_bits, nb_bits, bk);
+  multiply_float(vl, v, l, float_bits, nb_bits, bk);
+  multiply_float(wj, w, j, float_bits, nb_bits, bk);
 
   cout << "Duplas" << " (" << time(NULL) - t0 << "s)" << endl;
 

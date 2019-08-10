@@ -162,6 +162,7 @@ void test_times(){
 
   // TODO ¿QUé es esto?
 	const int minimum_lambda = 110;
+	const int float_bits = 7;
 
   cout << "op,bits,a,b,time(s)" << endl;
 
@@ -286,6 +287,11 @@ void test_times(){
     cout << "multiply," << nb_bits << "," << t - t0 << endl;
 
     t0 = time(NULL);
+    multiply_float(result, ciphertext1, ciphertext2, float_bits, nb_bits, bk);
+    t = time(NULL);
+    cout << "multiply_float," << nb_bits << "," << t - t0 << endl;
+
+    t0 = time(NULL);
     mayor(result, ciphertext1, ciphertext2, nb_bits, bk);
     t = time(NULL);
     cout << "mayor," << nb_bits << "," << t - t0 << endl;
@@ -309,6 +315,11 @@ void test_times(){
     divide(result, ciphertext1, ciphertext2, nb_bits, bk);
     t = time(NULL);
     cout << "divide," << nb_bits << "," << t - t0 << endl;
+
+    t0 = time(NULL);
+    divide_float(result, ciphertext1, ciphertext2, float_bits, nb_bits, bk);
+    t = time(NULL);
+    cout << "divide_float," << nb_bits << "," << t - t0 << endl;
 
     t0 = time(NULL);
     porDiez(result, ciphertext1, nb_bits, bk);
@@ -400,6 +411,7 @@ void regresion(){
 }
 
 int main(){
-	test();
+	// regresion();
+	test_times();
 	return 0;
 }
