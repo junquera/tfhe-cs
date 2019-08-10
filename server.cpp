@@ -73,7 +73,6 @@ HServer::HServer(int nb_bits, int float_bits) {
 
   FILE* cloud_key = fopen("cloud.key","rb");
   bk = new_tfheGateBootstrappingCloudKeySet_fromFile(cloud_key);
-
   fclose(cloud_key);
 
   nb_bits = nb_bits;
@@ -186,11 +185,11 @@ void HServer::initVectores(const vector<LweSample*> xs, const vector<LweSample*>
 
   for(int ci=0 ; ci < values; ci++){
     /*
-    for x, y in xys:
-    i += x
-    j += x**2
-    k += x**3
-    l += x**4
+      for x, y in xys:
+        i += x
+        j += x**2
+        k += x**3
+        l += x**4
     */
     LweSample* x = xs[ci];
     LweSample* y = ys[ci];
@@ -236,7 +235,9 @@ void HServer::initVectores(const vector<LweSample*> xs, const vector<LweSample*>
       bootsCOPY(&v[cj], &aux2[cj], bk);
       bootsCOPY(&w[cj], &aux3[cj], bk);
     }
+
   }
+
   saveResult("i", i, nb_bits, bk->params);
   saveResult("j", j, nb_bits, bk->params);
   saveResult("k", k, nb_bits, bk->params);

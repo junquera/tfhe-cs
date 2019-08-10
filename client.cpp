@@ -1,87 +1,113 @@
 #include "aux.h"
+#include "reg2.h"
 
 class HClient {
 	public:
-		HClient(){
-		}
-}
+		HClient(int nb_bits, int float_bits);
+		void cifra(LweSample* answer, int32_t input);
+		int32_t descifra(LweSample* answer);
+		void loadKeyFromFile(string keyFileName, TFheGateBootstrappingSecretKeySet* &key);
+		void generaClaves(TFheGateBootstrappingSecretKeySet* &key);
+		void exportCloudKey(string name);
+		void exportSecretKey(string name);
+		void getCloudKey(TFheGateBootstrappingCloudKeySet* &cloudKey);
+	private:
+		int nb_bits;
+		int float_bits;
+		TFheGateBootstrappingSecretKeySet* key;
+};
 
-void verif(){
+HClient::HClient(int nb_bits, int float_bits){
+	string keyFileName = "secret.key";
 
-  //read the 16 ciphertexts of the result
-  LweSample* answer = new_gate_bootstrapping_ciphertext_array(nb_bits, params3);
+	if(exists_file(keyFileName)){
+		loadKeyFromFile(keyFileName, key);
+	} else {
+		generaClaves(key);
+	}
+};
 
-  //import the 32 ciphertexts from the answer file
-  answer_data = fopen("answer.data","rb");
-  for (int i=0; i<nb_bits; i++)
-      import_gate_bootstrapping_ciphertext_fromFile(answer_data, &answer[i], params3);
-  fclose(answer_data);
+void HClient::cifra(LweSample* result, int32_t input){
+	for(int i = 0; i < nb_bits; i++) {
+		bootsSymEncrypt(&result[i], (input>>i)&1, key);
+	}
+};
 
-  //decrypt and rebuild the 16-bit plaintext answer
-  int32_t int_answer = 0;
-  for (int i=0; i<nb_bits; i++) {
-      int ai = bootsSymDecrypt(&answer[i], key);
-      int_answer |= (ai<<i);
-  }
-
-	float float_answer = hint2float(int_answer, float_bits);
-
-  printf("And the result is: %f\n",float_answer);
-  // printf("And the result is: %d\n",int_answer);
-  printf("I hope you remember what was the question!\n");
-
-  //clean up all pointers
-  delete_gate_bootstrapping_ciphertext_array(nb_bits, answer);
-  delete_gate_bootstrapping_secret_keyset(key);
-}
-
-int32_t descifra(LweSample* answer, int nb_bits, TFheGateBootstrappingSecretKeySet* key){
+int32_t HClient::descifra(LweSample* input){
 
   int32_t int_answer = 0;
   for (int i=0; i<nb_bits; i++) {
-      int ai = bootsSymDecrypt(&answer[i], key);
+      int ai = bootsSymDecrypt(&input[i], key);
       int_answer |= (ai<<i);
   }
 
 	return int_answer;
-}
+};
 
-void cifra(LweSample* answer, int32_t input, int nb_bits, TFheGateBootstrappingSecretKeySet* key){
-	for(int i = 0; i < nb_bits; i++) {
-		bootsSymEncrypt(&result[i], (input>>i)&1, key);
-	}
-}
+void HClient::loadKeyFromFile(string keyFileName, TFheGateBootstrappingSecretKeySet* &key){
+	//reads the cloud key from file
+	FILE* secret_key = fopen(keyFileName.c_str(),"rb");
+	key = new_tfheGateBootstrappingSecretKeySet_fromFile(secret_key);
+	fclose(secret_key);
+};
 
-void generaClaves(TFheGateBootstrappingSecretKeySet* &key){
+void HClient::generaClaves(TFheGateBootstrappingSecretKeySet* &key){
+	// TODO ¿QUé es esto?
+	const int minimum_lambda = 110;
 
-	if(exists_file("secret.key")){
-		//reads the cloud key from file
-		FILE* secret_key = fopen("secret.key","rb");
-		key = new_tfheGateBootstrappingSecretKeySet_fromFile(secret_key);
-		fclose(secret_key);
+	TFheGateBootstrappingParameterSet* params = new_default_gate_bootstrapping_parameters(minimum_lambda);
+	//generate a random key
+	uint32_t seed[] = { 314, 1592, 657 };
+	tfhe_random_generator_setSeed(seed, 3);
+	key = new_random_gate_bootstrapping_secret_keyset(params);
+};
 
-	} else {
-		// TODO ¿QUé es esto?
-		const int minimum_lambda = 110;
-
-		TFheGateBootstrappingParameterSet* params = new_default_gate_bootstrapping_parameters(minimum_lambda);
-		//generate a random key
-		uint32_t seed[] = { 314, 1592, 657 };
-		tfhe_random_generator_setSeed(seed, 3);
-		key = new_random_gate_bootstrapping_secret_keyset(params);
-
-		//export the secret key to file for later use
-		FILE* secret_key = fopen("secret.key","wb");
-		export_tfheGateBootstrappingSecretKeySet_toFile(secret_key, key);
-		fclose(secret_key);
-
+void HClient::exportCloudKey(string name){
 		//export the cloud key to a file (for the cloud)
-    FILE* cloud_key = fopen("cloud.key","wb");
-    export_tfheGateBootstrappingCloudKeySet_toFile(cloud_key, &key->cloud);
-    fclose(cloud_key);
-	}
+	  FILE* cloud_key = fopen(name.c_str(),"wb");
+	  export_tfheGateBootstrappingCloudKeySet_toFile(cloud_key, &key->cloud);
+	  fclose(cloud_key);
+};
 
-}
+void HClient::exportSecretKey(string name){
+	//export the secret key to file for later use
+	FILE* secret_key = fopen(name.c_str(),"wb");
+	export_tfheGateBootstrappingSecretKeySet_toFile(secret_key, key);
+	fclose(secret_key);
+};
+
+void HClient::getCloudKey(TFheGateBootstrappingCloudKeySet* &cloudKey){
+	cloudKey = (TFheGateBootstrappingCloudKeySet*) &key->cloud;
+};
+// void verif(){
+
+  // //read the 16 ciphertexts of the result
+  // LweSample* answer = new_gate_bootstrapping_ciphertext_array(nb_bits, params3);
+	//
+  // //import the 32 ciphertexts from the answer file
+  // answer_data = fopen("answer.data","rb");
+  // for (int i=0; i<nb_bits; i++)
+  //     import_gate_bootstrapping_ciphertext_fromFile(answer_data, &answer[i], params3);
+  // fclose(answer_data);
+	//
+  // //decrypt and rebuild the 16-bit plaintext answer
+  // int32_t int_answer = 0;
+  // for (int i=0; i<nb_bits; i++) {
+  //     int ai = bootsSymDecrypt(&answer[i], key);
+  //     int_answer |= (ai<<i);
+  // }
+	//
+	// float float_answer = hint2float(int_answer, float_bits);
+	//
+  // printf("And the result is: %f\n",float_answer);
+  // // printf("And the result is: %d\n",int_answer);
+  // printf("I hope you remember what was the question!\n");
+	//
+  // //clean up all pointers
+  // delete_gate_bootstrapping_ciphertext_array(nb_bits, answer);
+  // delete_gate_bootstrapping_secret_keyset(key);
+// }
+
 
 // Valores [ (x1, y1), ... , (xn, yn) ]
 float cabogata_1417[48][2] = {
@@ -92,27 +118,27 @@ float cabogata_1417[48][2] = {
 };
 
 float finisterre_1417[48][2] = {
-	{1.0, 11.4}, {2.0, 10.9}, {3.0,12.4), {4.0, 14.9), {5.0, 15.1), {6.0, 18.3), {7.0, 19.3), {8.0, 19.9), {9.0, 20.8), {10.0, 18.8), {11.0, 13.5), {12.0, 11.3),
-	{1.0, 10.7}, {2.0, 10.0), {3.0, 11.7), {4.0, 14.8), {5.0, 15.9), {6.0, 17.9), {7.0, 20.0), {8.0, 19.2), {9.0, 17.6), {10.0, 16.4), {11.0, 15.5), {12.0, 14.1),
-	{1.0, 12.1}, {2.0, 11.0), {3.0, 11.1), {4.0, 12.1), {5.0, 15.2), {6.0, 17.6), {7.0, 19.8), {8.0, 20.1), {9.0, 18.7), {10.0, 16.7), {11.0, 13.0), {12.0, 13.1),
-	{1.0, 10.4}, {2.0, 11.8), {3.0, 12.9), {4.0, 14.3), {5.0, 17.4), {6.0, 18.7), {7.0, 19.9), {8.0, 19.8), {9.0, 18.3), {10.0, 17.8), {11.0, 13.0), {12.0, 11.2)
+	{1.0, 11.4}, {2.0, 10.9}, {3.0,12.4}, {4.0, 14.9}, {5.0, 15.1}, {6.0, 18.3}, {7.0, 19.3}, {8.0, 19.9}, {9.0, 20.8}, {10.0, 18.8}, {11.0, 13.5}, {12.0, 11.3},
+	{1.0, 10.7}, {2.0, 10.0}, {3.0, 11.7}, {4.0, 14.8}, {5.0, 15.9}, {6.0, 17.9}, {7.0, 20.0}, {8.0, 19.2}, {9.0, 17.6}, {10.0, 16.4}, {11.0, 15.5}, {12.0, 14.1},
+	{1.0, 12.1}, {2.0, 11.0}, {3.0, 11.1}, {4.0, 12.1}, {5.0, 15.2}, {6.0, 17.6}, {7.0, 19.8}, {8.0, 20.1}, {9.0, 18.7}, {10.0, 16.7}, {11.0, 13.0}, {12.0, 13.1},
+	{1.0, 10.4}, {2.0, 11.8}, {3.0, 12.9}, {4.0, 14.3}, {5.0, 17.4}, {6.0, 18.7}, {7.0, 19.9}, {8.0, 19.8}, {9.0, 18.3}, {10.0, 17.8}, {11.0, 13.0}, {12.0, 11.2}
 };
 
 
-void regresion(float[][] values){
+void regresion(float** values){
 
-	// Generación de claves y parametros
-	TFheGateBootstrappingSecretKeySet* key;
+	// Número de bits con los que queremos trabajar
+	const int nb_bits = 32;
+	const int float_bits = 7;
 
-	generaClaves(key);
+	HClient client(nb_bits, float_bits);
+
+	TFheGateBootstrappingCloudKeySet* bk;
+	client.getCloudKey(bk);
 
 	TFheGateBootstrappingParameterSet* params;
 	//if necessary, the params are inside the key
-	params = key->params;
-
-  // Número de bits con los que queremos trabajar
-  const int nb_bits = 32;
-	const int float_bits = 7;
+	params = (TFheGateBootstrappingParameterSet*) &bk->params;
 
 	vector<LweSample*> xs, ys;
 
@@ -124,8 +150,7 @@ void regresion(float[][] values){
 		plain = float2hint(values[i][0], float_bits);
 		cipher = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
 
-		for (int j=0; j<nb_bits; j++)
-			bootsSymEncrypt(&cipher[j], (plain>>j)&1, key);
+		client.cifra(cipher, plain);
 
 		xs.push_back(cipher);
 
@@ -133,8 +158,7 @@ void regresion(float[][] values){
 		plain = float2hint(cabogata_1417[i][1], float_bits);
 		cipher = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
 
-		for (int j=0; j<nb_bits; j++)
-			bootsSymEncrypt(&cipher[j], (plain>>j)&1, key);
+		client.cifra(cipher, plain);
 
 		ys.push_back(cipher);
 	}
@@ -143,27 +167,16 @@ void regresion(float[][] values){
 	LweSample* b = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
 	LweSample* c = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
 
-	const TFheGateBootstrappingCloudKeySet* bk = &key->cloud;
-
 	regresion_cuadratica(a, b, c, xs, ys, float_bits, nb_bits, bk);
 
 	// Descifrar resultado
-	int32_t a_int_answer = 0;
-	int32_t b_int_answer = 0;
-	int32_t c_int_answer = 0;
-
-	for (int i=0; i<nb_bits; i++) {
-			int ai = bootsSymDecrypt(&a[i], key);
-			a_int_answer |= (ai<<i);
-			int bi = bootsSymDecrypt(&b[i], key);
-			b_int_answer |= (bi<<i);
-			int ci = bootsSymDecrypt(&c[i], key);
-			c_int_answer |= (ci<<i);
-	}
+	int32_t a_int_answer = client.descifra(a);
+	int32_t b_int_answer = client.descifra(b);
+	int32_t c_int_answer = client.descifra(c);
 
 	float a_float_answer = hint2float(a_int_answer, float_bits);
 	float b_float_answer = hint2float(b_int_answer, float_bits);
 	float c_float_answer = hint2float(c_int_answer, float_bits);
 
 	cout << "a: " << a_float_answer << "\nb: " << b_float_answer << "\nc: " << c_float_answer << endl;
-}
+};
