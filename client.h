@@ -4,6 +4,7 @@
 #include "aux.h"
 #include "reg2.h"
 
+
 class HClient {
 	public:
 		HClient(int nb_bits, int float_bits);
