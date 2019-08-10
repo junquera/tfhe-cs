@@ -83,8 +83,10 @@ HServer::HServer(int nb_bits, int float_bits) {
   aux2 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   aux3 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   aux4 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+
   n = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   uno = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+
   i = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   j = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   k = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
@@ -131,7 +133,6 @@ HServer::HServer(int nb_bits, int float_bits) {
   }
 
   // Inicializando variables
-  // Inicializa n
   for(int ci=0; ci<nb_bits; ci++){
     bootsCONSTANT(&uno[ci], 0, bk);
   }
@@ -144,6 +145,17 @@ HServer::HServer(int nb_bits, int float_bits) {
   }
 };
 
+/*
+  values = 48
+  multi = 5*values = 240
+  suma = 7*values = 336
+
+  t_multi = 93
+  t_suma = 6
+
+  t_total = t_multi*multi + t_suma*suma
+          = 22320 + 2016 = 24336s = 406.6m = 6.7 horas
+*/
 void HServer::initVectores(const vector<LweSample*> xs, const vector<LweSample*> ys){
 
   int values = xs.size();
@@ -154,6 +166,8 @@ void HServer::initVectores(const vector<LweSample*> xs, const vector<LweSample*>
   // Inicializa "n"
   for(int ci=0; ci<nb_bits; ci++)
     bootsCONSTANT(&n[ci], (values>>ci)&1, bk);
+
+  // Ajusta "n" a float_bits
   shiftl(aux1, n, float_bits, nb_bits, bk);
   for(int ci=0; ci < nb_bits; ci++)
     bootsCOPY(&n[ci], &aux1[ci], bk);
@@ -233,6 +247,13 @@ void HServer::initVectores(const vector<LweSample*> xs, const vector<LweSample*>
   saveResult("w", w, nb_bits, bk->params);
 };
 
+/*
+  multi = 4
+
+  t_multi = 93
+
+  t_total = t_multi*multi = 372s = 6.2 minutos
+*/
 void HServer::calcCuadrados(){
 
   bool exists_i2 = retrieveResult("i2", i2, nb_bits, bk->params);
@@ -253,6 +274,13 @@ void HServer::calcCuadrados(){
   saveResult("l2", l2, nb_bits, bk->params);
 };
 
+/*
+  multi = 9
+
+  t_multi = 93
+
+  t_total = t_multi*multi = 837s = 13.9 minutos
+*/
 void HServer::calcDuplas(){
 
   bool exists_il = retrieveResult("il", il, nb_bits, bk->params);
@@ -290,6 +318,13 @@ void HServer::calcDuplas(){
   saveResult("wj", wj, nb_bits, bk->params);
 };
 
+/*
+  multi = 10
+
+  t_multi = 93
+
+  t_total = t_multi*multi = 930s = 15.5 minutos
+*/
 void HServer::calcComplejos(){
 
   bool exists_ijkl = retrieveResult("ijkl", ijkl, nb_bits, bk->params);
