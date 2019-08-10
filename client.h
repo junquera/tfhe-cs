@@ -7,7 +7,7 @@
 
 class HClient {
 	public:
-		HClient(int nb_bits, int float_bits);
+		HClient(int _nb_bits, int _float_bits);
 		void cifra(LweSample* answer, int32_t input);
 		int32_t descifra(LweSample* answer);
 		void exportSecretKeyToFile(string name);
