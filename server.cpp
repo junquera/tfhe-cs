@@ -14,6 +14,8 @@ class HServer {
     void calcula(LweSample* a, LweSample* b, LweSample* c, const vector<LweSample*> xs, const vector<LweSample*> ys, const int float_bits, const int nb_bits);
     void initVectores(const vector<LweSample*> xs, const vector<LweSample*> ys);
     void calcCuadrados();
+    void calcDuplas();
+    void calcComplejos();
   private:
     TFheGateBootstrappingCloudKeySet* bk;
 
@@ -42,6 +44,29 @@ class HServer {
     LweSample* j2;
     LweSample* k2;
     LweSample* l2;
+
+    // Duplas
+    LweSample* il;
+    LweSample* jk;
+    LweSample* jl;
+    LweSample* kw;
+    LweSample* kv;
+    LweSample* ln;
+    LweSample* ul;
+    LweSample* vl;
+    LweSample* wj;
+
+    LweSample* ijkl;
+    LweSample* i2l2;
+    LweSample* iklw;
+    LweSample* il2v;
+    LweSample* j2k2;
+    LweSample* jk2w;
+    LweSample* jklv;
+    LweSample* j3l;
+    LweSample* jl2n;
+    LweSample* k2ln;
+
 };
 
 HServer::HServer(int nb_bits, int float_bits) {
@@ -72,6 +97,27 @@ HServer::HServer(int nb_bits, int float_bits) {
   j2 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   k2 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   l2 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+
+  il = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  jk = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  jl = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  kw = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  kv = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  ln = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  ul = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  vl = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  wj = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+
+  ijkl = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  i2l2 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  iklw = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  il2v = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  j2k2 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  jk2w = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  jklv = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  j3l = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  jl2n = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  k2ln = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
 
   // Inicializando variables
   for(int ci=0; ci<nb_bits; ci++){
@@ -207,20 +253,21 @@ void HServer::calcCuadrados(){
   saveResult("l2", l2, nb_bits, bk->params);
 };
 
-void HServer::calcula(LweSample* a, LweSample* b, LweSample* c, const vector<LweSample*> xs, const vector<LweSample*> ys, const int float_bits, const int nb_bits){
+void HServer::calcDuplas(){
 
-  initVectores(xs, ys);
-  calcCuadrados();
+  bool exists_il = retrieveResult("il", il, nb_bits, bk->params);
+  bool exists_jk = retrieveResult("jk", jk, nb_bits, bk->params);
+  bool exists_jl = retrieveResult("jl", jl, nb_bits, bk->params);
+  bool exists_kw = retrieveResult("kw", kw, nb_bits, bk->params);
+  bool exists_kv = retrieveResult("kv", kv, nb_bits, bk->params);
+  bool exists_ln = retrieveResult("ln", ln, nb_bits, bk->params);
+  bool exists_ul = retrieveResult("ul", ul, nb_bits, bk->params);
+  bool exists_vl = retrieveResult("vl", vl, nb_bits, bk->params);
+  bool exists_wj = retrieveResult("wj", wj, nb_bits, bk->params);
 
-  LweSample* il = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
-  LweSample* jk = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
-  LweSample* jl = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
-  LweSample* kw = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
-  LweSample* kv = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
-  LweSample* ln = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
-  LweSample* ul = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
-  LweSample* vl = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
-  LweSample* wj = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  if(exists_il & exists_jk & exists_jl &
+    exists_kw & exists_kv & exists_ln &
+    exists_ul & exists_vl & exists_wj) return;
 
   multiply_float(il, i, l, float_bits, nb_bits, bk);
   multiply_float(jk, j, k, float_bits, nb_bits, bk);
@@ -232,17 +279,34 @@ void HServer::calcula(LweSample* a, LweSample* b, LweSample* c, const vector<Lwe
   multiply_float(vl, v, l, float_bits, nb_bits, bk);
   multiply_float(wj, w, j, float_bits, nb_bits, bk);
 
+  saveResult("il", il, nb_bits, bk->params);
+  saveResult("jk", jk, nb_bits, bk->params);
+  saveResult("jl", jl, nb_bits, bk->params);
+  saveResult("kw", kw, nb_bits, bk->params);
+  saveResult("kv", kv, nb_bits, bk->params);
+  saveResult("ln", ln, nb_bits, bk->params);
+  saveResult("ul", ul, nb_bits, bk->params);
+  saveResult("vl", vl, nb_bits, bk->params);
+  saveResult("wj", wj, nb_bits, bk->params);
+};
 
-  LweSample* ijkl = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
-  LweSample* i2l2 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
-  LweSample* iklw = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
-  LweSample* il2v = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
-  LweSample* j2k2 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
-  LweSample* jk2w = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
-  LweSample* jklv = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
-  LweSample* j3l = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
-  LweSample* jl2n = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
-  LweSample* k2ln = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+void HServer::calcComplejos(){
+
+  bool exists_ijkl = retrieveResult("ijkl", ijkl, nb_bits, bk->params);
+  bool exists_i2l2 = retrieveResult("i2l2", i2l2, nb_bits, bk->params);
+  bool exists_iklw = retrieveResult("iklw", iklw, nb_bits, bk->params);
+  bool exists_il2v = retrieveResult("il2v", il2v, nb_bits, bk->params);
+  bool exists_j2k2 = retrieveResult("j2k2", j2k2, nb_bits, bk->params);
+  bool exists_jk2w = retrieveResult("jk2w", jk2w, nb_bits, bk->params);
+  bool exists_jklv = retrieveResult("jklv", jklv, nb_bits, bk->params);
+  bool exists_j3l = retrieveResult("j3l", j3l, nb_bits, bk->params);
+  bool exists_jl2n = retrieveResult("jl2n", jl2n, nb_bits, bk->params);
+  bool exists_k2ln = retrieveResult("k2ln", k2ln, nb_bits, bk->params);
+
+
+  if (exists_ijkl & exists_i2l2 & exists_iklw & exists_il2v & exists_j2k2 &
+      exists_jk2w & exists_jklv & exists_j3l & exists_jl2n & exists_k2ln)
+      return;
 
   multiply_float(ijkl, il, jk, float_bits, nb_bits, bk);
   multiply_float(i2l2, i2, l2, float_bits, nb_bits, bk);
@@ -255,6 +319,25 @@ void HServer::calcula(LweSample* a, LweSample* b, LweSample* c, const vector<Lwe
   multiply_float(jl2n, jl, ln, float_bits, nb_bits, bk);
   multiply_float(k2ln, k2, ln, float_bits, nb_bits, bk);
 
+  saveResult("ijkl", ijkl, nb_bits, bk->params);
+  saveResult("i2l2", i2l2, nb_bits, bk->params);
+  saveResult("iklw", iklw, nb_bits, bk->params);
+  saveResult("il2v", il2v, nb_bits, bk->params);
+  saveResult("j2k2", j2k2, nb_bits, bk->params);
+  saveResult("jk2w", jk2w, nb_bits, bk->params);
+  saveResult("jklv", jklv, nb_bits, bk->params);
+  saveResult("j3l", j3l, nb_bits, bk->params);
+  saveResult("jl2n", jl2n, nb_bits, bk->params);
+  saveResult("k2ln", k2ln, nb_bits, bk->params);
+
+};
+
+void HServer::calcula(LweSample* a, LweSample* b, LweSample* c, const vector<LweSample*> xs, const vector<LweSample*> ys, const int float_bits, const int nb_bits){
+
+  initVectores(xs, ys);
+  calcCuadrados();
+  calcDuplas();
+  calcComplejos();
 
   /*
     c = (ul - wj)/(ln - j2)
