@@ -12,7 +12,8 @@ class HServer {
   public:
     HServer(int nb_bits, int float_bits);
     void calcula(LweSample* a, LweSample* b, LweSample* c, const vector<LweSample*> xs, const vector<LweSample*> ys, const int float_bits, const int nb_bits);
-    void calcVectores(const vector<LweSample*> xs, const vector<LweSample*> ys);
+    void initVectores(const vector<LweSample*> xs, const vector<LweSample*> ys);
+    void calcCuadrados();
   private:
     TFheGateBootstrappingCloudKeySet* bk;
 
@@ -41,7 +42,7 @@ class HServer {
     LweSample* j2;
     LweSample* k2;
     LweSample* l2;
-
+};
 
 HServer::HServer(int nb_bits, int float_bits) {
 
@@ -95,9 +96,9 @@ HServer::HServer(int nb_bits, int float_bits) {
   for(int ci=0; ci < nb_bits; ci++){
     bootsCOPY(&uno[ci], &aux2[ci], bk);
   }
-}
+};
 
-void HServer::calcVectores(const vector<LweSample*> xs, const vector<LweSample*> ys){
+void HServer::initVectores(const vector<LweSample*> xs, const vector<LweSample*> ys){
 
   int values = xs.size();
   if(xs.size() != ys.size()){
@@ -184,9 +185,9 @@ void HServer::calcVectores(const vector<LweSample*> xs, const vector<LweSample*>
   saveResult("u", u, nb_bits, bk->params);
   saveResult("v", v, nb_bits, bk->params);
   saveResult("w", w, nb_bits, bk->params);
-}
+};
 
-void HServer::calcCuadrados(const vector<LweSample*> xs, const vector<LweSample*> ys){
+void HServer::calcCuadrados(){
 
   bool exists_i2 = retrieveResult("i2", i2, nb_bits, bk->params);
   bool exists_j2 = retrieveResult("j2", j2, nb_bits, bk->params);
@@ -204,11 +205,11 @@ void HServer::calcCuadrados(const vector<LweSample*> xs, const vector<LweSample*
   saveResult("j2", j2, nb_bits, bk->params);
   saveResult("k2", k2, nb_bits, bk->params);
   saveResult("l2", l2, nb_bits, bk->params);
-}
+};
 
 void HServer::calcula(LweSample* a, LweSample* b, LweSample* c, const vector<LweSample*> xs, const vector<LweSample*> ys, const int float_bits, const int nb_bits){
 
-  calcVectores(xs, ys);
+  initVectores(xs, ys);
   calcCuadrados();
 
   LweSample* il = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
