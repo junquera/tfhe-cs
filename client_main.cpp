@@ -74,19 +74,18 @@ int main(){
 	vector<LweSample*> xs, ys;
 
 	int32_t plain;
-	LweSample* cipher = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
 	for(int i = 0; i < n_values; i++) {
-    cout << i << endl;
+    LweSample* cipher = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
 
 		// Añade xs
 		plain = float2hint(values[i][0], float_bits);
 
 		client.cifra(cipher, plain);
 
-		// xs.push_back(cipher);
-    stringstream stringStream;
-    stringStream << "cabogataX" << i;
-    string cgname = stringStream.str();
+		xs.push_back(cipher);
+    // stringstream stringStream;
+    // stringStream << "cabogataX" << i;
+    // string cgname = stringStream.str();
     // saveResult(cgname, cipher, nb_bits, params);
 
 		// Añade ys
@@ -94,7 +93,7 @@ int main(){
 
 		client.cifra(cipher, plain);
 
-		// ys.push_back(cipher);
+		ys.push_back(cipher);
     // saveResult("cabogataY" + i, cipher, nb_bits, params);
 
 	}

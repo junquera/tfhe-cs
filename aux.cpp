@@ -50,6 +50,7 @@ void generaClaves(TFheGateBootstrappingSecretKeySet* &key) {
 	uint32_t seed[] = { 314, 1592, 657 };
 	tfhe_random_generator_setSeed(seed, 3);
 	key = new_random_gate_bootstrapping_secret_keyset(params);
+  
 }
 
 void loadSecretKeyFromFile(string keyFileName, TFheGateBootstrappingSecretKeySet* &key){
