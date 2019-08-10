@@ -115,8 +115,55 @@ int main(){
   else
     client.genKeys();
 
-  // generateValues(client, n_values, cabogata_1417, "ciudad_A");
-  // generateValues(client, n_values, finisterre_1417, "ciudad_B");
+  int opcion;
+
+  cout << "Cliente TFHE" << endl;
+  cout << "1) Generar datos de Cabo de Gata (ciudad_A)" << endl;
+  cout << "2) Generar datos de Finisterre (ciudad_B)" << endl;
+  cout << "3) Analizar resultados del servidor" << endl;
+  cout << "4) Descifrar archivo" << endl;
+  cout << "Elija opción > ";
+
+  cin >> opcion;
+
+  string ubic = ".";
+  string nombre;
+  switch(opcion) {
+    case 1:
+      cout << "¿Dónde? > ";
+      cin >> ubic;
+      generateValues(client, n_values, cabogata_1417, ubic + "/" + "ciudad_A");
+      break;
+    case 2:
+      cout << "¿Dónde? > ";
+      cin >> ubic;
+      generateValues(client, n_values, finisterre_1417, ubic + "/" + "ciudad_B");
+      break;
+    case 3:
+      float a, b, c;
+      cout << "¿Cabo de Gata (0) o Finisterre (1)? > ";
+      cin >> opcion;
+      switch (opcion) {
+        case 0:
+          nombre = "ciudad_A";
+          break;
+        case 1:
+          nombre = "ciudad_B";
+          break;
+        default:
+          return -1;
+      }
+      retireveResults(a, b, c, client, nombre);
+      cout << "(" << a << ")*x^2 + (" << b << ")*x + (" << c << ")" << endl;
+      break;
+    case 4:
+      cout << "¿Qué archivo? > ";
+      cin >> ubic;
+      cout << checkFileValue(client, ubic) << endl;
+      break;
+    default:
+      main();
+  }
 
   return 0;
 }
