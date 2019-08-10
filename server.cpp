@@ -1,82 +1,36 @@
-#include "aux.h"
+#include "server.h"
 
 /**
-  Operaciones de regresión cuadrática:
-    - 6       division        1386 segundos/operación
-    - 32      multiplicacion  93 segundos/operación
-    - 22      suma/resta      6 segundos/operación
+Operaciones de regresión cuadrática:
+- 6       division        1386 segundos/operación
+- 32      multiplicacion  93 segundos/operación
+- 22      suma/resta      6 segundos/operación
 
-  TOTAL: 11424 segundos = 190 minutos = 3.17 horas
+TOTAL: 11424 segundos = 190 minutos = 3.17 horas
 */
-class HServer {
-  public:
-    HServer(int nb_bits, int float_bits);
-    void calcula(LweSample* a, LweSample* b, LweSample* c, const vector<LweSample*> xs, const vector<LweSample*> ys, const int float_bits, const int nb_bits);
-    void initVectores(const vector<LweSample*> xs, const vector<LweSample*> ys);
-    void calcCuadrados();
-    void calcDuplas();
-    void calcComplejos();
-  private:
-    TFheGateBootstrappingCloudKeySet* bk;
 
-    int nb_bits;
-    int float_bits;
-
-    LweSample* aux1;
-    LweSample* aux2;
-    LweSample* aux3;
-    LweSample* aux4;
-
-    LweSample* n;
-    LweSample* uno;
-
-    LweSample* i;
-    LweSample* j;
-    LweSample* k;
-    LweSample* l;
-
-    LweSample* u;
-    LweSample* v;
-    LweSample* w;
-
-    // Cuadrados de las variables
-    LweSample* i2;
-    LweSample* j2;
-    LweSample* k2;
-    LweSample* l2;
-
-    // Duplas
-    LweSample* il;
-    LweSample* jk;
-    LweSample* jl;
-    LweSample* kw;
-    LweSample* kv;
-    LweSample* ln;
-    LweSample* ul;
-    LweSample* vl;
-    LweSample* wj;
-
-    LweSample* ijkl;
-    LweSample* i2l2;
-    LweSample* iklw;
-    LweSample* il2v;
-    LweSample* j2k2;
-    LweSample* jk2w;
-    LweSample* jklv;
-    LweSample* j3l;
-    LweSample* jl2n;
-    LweSample* k2ln;
-
-};
 
 HServer::HServer(int nb_bits, int float_bits) {
+  nb_bits = nb_bits;
+  float_bits = float_bits;
+};
 
-  FILE* cloud_key = fopen("cloud.key","rb");
-  bk = new_tfheGateBootstrappingCloudKeySet_fromFile(cloud_key);
-  fclose(cloud_key);
+void HServer::regresionCuadratica(LweSample* a, LweSample* b, LweSample* c, const vector<LweSample*> xs, const vector<LweSample*> ys, string cloud_key_path, string results_path) {
+  TFheGateBootstrappingCloudKeySet* bk;
+  loadCloudKeyFromFile(cloud_key_path, bk);
+
+  RegresionCuadratica rg(nb_bits, float_bits, bk, results_path);
+  rg.calcula(a, b, c, xs, ys);
+};
+
+RegresionCuadratica::RegresionCuadratica(int nb_bits, int float_bits, TFheGateBootstrappingCloudKeySet* bk, string results_path) {
 
   nb_bits = nb_bits;
   float_bits = float_bits;
+
+  bk = bk;
+
+  results_path = results_path;
 
   aux1 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   aux2 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
@@ -122,6 +76,12 @@ HServer::HServer(int nb_bits, int float_bits) {
 
   // Inicializando variables
   for(int ci=0; ci<nb_bits; ci++){
+    bootsCONSTANT(&aux1[ci], 0, bk);
+    bootsCONSTANT(&aux2[ci], 0, bk);
+    bootsCONSTANT(&aux3[ci], 0, bk);
+    bootsCONSTANT(&aux4[ci], 0, bk);
+    bootsCONSTANT(&n[ci], 0, bk);
+    bootsCONSTANT(&uno[ci], 0, bk);
     bootsCONSTANT(&i[ci], 0, bk);
     bootsCONSTANT(&j[ci], 0, bk);
     bootsCONSTANT(&k[ci], 0, bk);
@@ -129,6 +89,29 @@ HServer::HServer(int nb_bits, int float_bits) {
     bootsCONSTANT(&u[ci], 0, bk);
     bootsCONSTANT(&v[ci], 0, bk);
     bootsCONSTANT(&w[ci], 0, bk);
+    bootsCONSTANT(&i2[ci], 0, bk);
+    bootsCONSTANT(&j2[ci], 0, bk);
+    bootsCONSTANT(&k2[ci], 0, bk);
+    bootsCONSTANT(&l2[ci], 0, bk);
+    bootsCONSTANT(&il[ci], 0, bk);
+    bootsCONSTANT(&jk[ci], 0, bk);
+    bootsCONSTANT(&jl[ci], 0, bk);
+    bootsCONSTANT(&kw[ci], 0, bk);
+    bootsCONSTANT(&kv[ci], 0, bk);
+    bootsCONSTANT(&ln[ci], 0, bk);
+    bootsCONSTANT(&ul[ci], 0, bk);
+    bootsCONSTANT(&vl[ci], 0, bk);
+    bootsCONSTANT(&wj[ci], 0, bk);
+    bootsCONSTANT(&ijkl[ci], 0, bk);
+    bootsCONSTANT(&i2l2[ci], 0, bk);
+    bootsCONSTANT(&iklw[ci], 0, bk);
+    bootsCONSTANT(&il2v[ci], 0, bk);
+    bootsCONSTANT(&j2k2[ci], 0, bk);
+    bootsCONSTANT(&jk2w[ci], 0, bk);
+    bootsCONSTANT(&jklv[ci], 0, bk);
+    bootsCONSTANT(&j3l[ci], 0, bk);
+    bootsCONSTANT(&jl2n[ci], 0, bk);
+    bootsCONSTANT(&k2ln[ci], 0, bk);
   }
 
   // Inicializando variables
@@ -155,7 +138,7 @@ HServer::HServer(int nb_bits, int float_bits) {
   t_total = t_multi*multi + t_suma*suma
           = 22320 + 2016 = 24336s = 406.6m = 6.7 horas
 */
-void HServer::initVectores(const vector<LweSample*> xs, const vector<LweSample*> ys){
+void RegresionCuadratica::initVectores(const vector<LweSample*> xs, const vector<LweSample*> ys){
 
   int values = xs.size();
   if(xs.size() != ys.size()){
@@ -172,14 +155,14 @@ void HServer::initVectores(const vector<LweSample*> xs, const vector<LweSample*>
     bootsCOPY(&n[ci], &aux1[ci], bk);
 
 
-  bool exists_i = retrieveResult("i", i, nb_bits, bk->params);
-  bool exists_j = retrieveResult("j", j, nb_bits, bk->params);
-  bool exists_k = retrieveResult("k", k, nb_bits, bk->params);
-  bool exists_l = retrieveResult("l", l, nb_bits, bk->params);
+  bool exists_i = retrieveResult(results_path + "/" + "i", i, nb_bits, bk->params);
+  bool exists_j = retrieveResult(results_path + "/" + "j", j, nb_bits, bk->params);
+  bool exists_k = retrieveResult(results_path + "/" + "k", k, nb_bits, bk->params);
+  bool exists_l = retrieveResult(results_path + "/" + "l", l, nb_bits, bk->params);
 
-  bool exists_u = retrieveResult("u", u, nb_bits, bk->params);
-  bool exists_v = retrieveResult("v", v, nb_bits, bk->params);
-  bool exists_w = retrieveResult("w", w, nb_bits, bk->params);
+  bool exists_u = retrieveResult(results_path + "/" + "u", u, nb_bits, bk->params);
+  bool exists_v = retrieveResult(results_path + "/" + "v", v, nb_bits, bk->params);
+  bool exists_w = retrieveResult(results_path + "/" + "w", w, nb_bits, bk->params);
 
   if(exists_i & exists_j & exists_k & exists_l & exists_u & exists_v & exists_w) return;
 
@@ -238,14 +221,14 @@ void HServer::initVectores(const vector<LweSample*> xs, const vector<LweSample*>
 
   }
 
-  saveResult("i", i, nb_bits, bk->params);
-  saveResult("j", j, nb_bits, bk->params);
-  saveResult("k", k, nb_bits, bk->params);
-  saveResult("l", l, nb_bits, bk->params);
+  saveResult(results_path + "/" + "i", i, nb_bits, bk->params);
+  saveResult(results_path + "/" + "j", j, nb_bits, bk->params);
+  saveResult(results_path + "/" + "k", k, nb_bits, bk->params);
+  saveResult(results_path + "/" + "l", l, nb_bits, bk->params);
 
-  saveResult("u", u, nb_bits, bk->params);
-  saveResult("v", v, nb_bits, bk->params);
-  saveResult("w", w, nb_bits, bk->params);
+  saveResult(results_path + "/" + "u", u, nb_bits, bk->params);
+  saveResult(results_path + "/" + "v", v, nb_bits, bk->params);
+  saveResult(results_path + "/" + "w", w, nb_bits, bk->params);
 };
 
 /*
@@ -255,12 +238,12 @@ void HServer::initVectores(const vector<LweSample*> xs, const vector<LweSample*>
 
   t_total = t_multi*multi = 372s = 6.2 minutos
 */
-void HServer::calcCuadrados(){
+void RegresionCuadratica::calcCuadrados(){
 
-  bool exists_i2 = retrieveResult("i2", i2, nb_bits, bk->params);
-  bool exists_j2 = retrieveResult("j2", j2, nb_bits, bk->params);
-  bool exists_k2 = retrieveResult("k2", k2, nb_bits, bk->params);
-  bool exists_l2 = retrieveResult("l2", l2, nb_bits, bk->params);
+  bool exists_i2 = retrieveResult(results_path + "/" + "i2", i2, nb_bits, bk->params);
+  bool exists_j2 = retrieveResult(results_path + "/" + "j2", j2, nb_bits, bk->params);
+  bool exists_k2 = retrieveResult(results_path + "/" + "k2", k2, nb_bits, bk->params);
+  bool exists_l2 = retrieveResult(results_path + "/" + "l2", l2, nb_bits, bk->params);
 
   if(exists_i2 & exists_j2 & exists_k2 & exists_l2) return;
 
@@ -269,10 +252,10 @@ void HServer::calcCuadrados(){
   h_pow(k2, k, 2, nb_bits, bk);
   h_pow(l2, k, 2, nb_bits, bk);
 
-  saveResult("i2", i2, nb_bits, bk->params);
-  saveResult("j2", j2, nb_bits, bk->params);
-  saveResult("k2", k2, nb_bits, bk->params);
-  saveResult("l2", l2, nb_bits, bk->params);
+  saveResult(results_path + "/" + "i2", i2, nb_bits, bk->params);
+  saveResult(results_path + "/" + "j2", j2, nb_bits, bk->params);
+  saveResult(results_path + "/" + "k2", k2, nb_bits, bk->params);
+  saveResult(results_path + "/" + "l2", l2, nb_bits, bk->params);
 };
 
 /*
@@ -282,17 +265,17 @@ void HServer::calcCuadrados(){
 
   t_total = t_multi*multi = 837s = 13.9 minutos
 */
-void HServer::calcDuplas(){
+void RegresionCuadratica::calcDuplas(){
 
-  bool exists_il = retrieveResult("il", il, nb_bits, bk->params);
-  bool exists_jk = retrieveResult("jk", jk, nb_bits, bk->params);
-  bool exists_jl = retrieveResult("jl", jl, nb_bits, bk->params);
-  bool exists_kw = retrieveResult("kw", kw, nb_bits, bk->params);
-  bool exists_kv = retrieveResult("kv", kv, nb_bits, bk->params);
-  bool exists_ln = retrieveResult("ln", ln, nb_bits, bk->params);
-  bool exists_ul = retrieveResult("ul", ul, nb_bits, bk->params);
-  bool exists_vl = retrieveResult("vl", vl, nb_bits, bk->params);
-  bool exists_wj = retrieveResult("wj", wj, nb_bits, bk->params);
+  bool exists_il = retrieveResult(results_path + "/" + "il", il, nb_bits, bk->params);
+  bool exists_jk = retrieveResult(results_path + "/" + "jk", jk, nb_bits, bk->params);
+  bool exists_jl = retrieveResult(results_path + "/" + "jl", jl, nb_bits, bk->params);
+  bool exists_kw = retrieveResult(results_path + "/" + "kw", kw, nb_bits, bk->params);
+  bool exists_kv = retrieveResult(results_path + "/" + "kv", kv, nb_bits, bk->params);
+  bool exists_ln = retrieveResult(results_path + "/" + "ln", ln, nb_bits, bk->params);
+  bool exists_ul = retrieveResult(results_path + "/" + "ul", ul, nb_bits, bk->params);
+  bool exists_vl = retrieveResult(results_path + "/" + "vl", vl, nb_bits, bk->params);
+  bool exists_wj = retrieveResult(results_path + "/" + "wj", wj, nb_bits, bk->params);
 
   if(exists_il & exists_jk & exists_jl &
     exists_kw & exists_kv & exists_ln &
@@ -308,15 +291,15 @@ void HServer::calcDuplas(){
   multiply_float(vl, v, l, float_bits, nb_bits, bk);
   multiply_float(wj, w, j, float_bits, nb_bits, bk);
 
-  saveResult("il", il, nb_bits, bk->params);
-  saveResult("jk", jk, nb_bits, bk->params);
-  saveResult("jl", jl, nb_bits, bk->params);
-  saveResult("kw", kw, nb_bits, bk->params);
-  saveResult("kv", kv, nb_bits, bk->params);
-  saveResult("ln", ln, nb_bits, bk->params);
-  saveResult("ul", ul, nb_bits, bk->params);
-  saveResult("vl", vl, nb_bits, bk->params);
-  saveResult("wj", wj, nb_bits, bk->params);
+  saveResult(results_path + "/" + "il", il, nb_bits, bk->params);
+  saveResult(results_path + "/" + "jk", jk, nb_bits, bk->params);
+  saveResult(results_path + "/" + "jl", jl, nb_bits, bk->params);
+  saveResult(results_path + "/" + "kw", kw, nb_bits, bk->params);
+  saveResult(results_path + "/" + "kv", kv, nb_bits, bk->params);
+  saveResult(results_path + "/" + "ln", ln, nb_bits, bk->params);
+  saveResult(results_path + "/" + "ul", ul, nb_bits, bk->params);
+  saveResult(results_path + "/" + "vl", vl, nb_bits, bk->params);
+  saveResult(results_path + "/" + "wj", wj, nb_bits, bk->params);
 };
 
 /*
@@ -326,18 +309,18 @@ void HServer::calcDuplas(){
 
   t_total = t_multi*multi = 930s = 15.5 minutos
 */
-void HServer::calcComplejos(){
+void RegresionCuadratica::calcComplejos(){
 
-  bool exists_ijkl = retrieveResult("ijkl", ijkl, nb_bits, bk->params);
-  bool exists_i2l2 = retrieveResult("i2l2", i2l2, nb_bits, bk->params);
-  bool exists_iklw = retrieveResult("iklw", iklw, nb_bits, bk->params);
-  bool exists_il2v = retrieveResult("il2v", il2v, nb_bits, bk->params);
-  bool exists_j2k2 = retrieveResult("j2k2", j2k2, nb_bits, bk->params);
-  bool exists_jk2w = retrieveResult("jk2w", jk2w, nb_bits, bk->params);
-  bool exists_jklv = retrieveResult("jklv", jklv, nb_bits, bk->params);
-  bool exists_j3l = retrieveResult("j3l", j3l, nb_bits, bk->params);
-  bool exists_jl2n = retrieveResult("jl2n", jl2n, nb_bits, bk->params);
-  bool exists_k2ln = retrieveResult("k2ln", k2ln, nb_bits, bk->params);
+  bool exists_ijkl = retrieveResult(results_path + "/" + "ijkl", ijkl, nb_bits, bk->params);
+  bool exists_i2l2 = retrieveResult(results_path + "/" + "i2l2", i2l2, nb_bits, bk->params);
+  bool exists_iklw = retrieveResult(results_path + "/" + "iklw", iklw, nb_bits, bk->params);
+  bool exists_il2v = retrieveResult(results_path + "/" + "il2v", il2v, nb_bits, bk->params);
+  bool exists_j2k2 = retrieveResult(results_path + "/" + "j2k2", j2k2, nb_bits, bk->params);
+  bool exists_jk2w = retrieveResult(results_path + "/" + "jk2w", jk2w, nb_bits, bk->params);
+  bool exists_jklv = retrieveResult(results_path + "/" + "jklv", jklv, nb_bits, bk->params);
+  bool exists_j3l = retrieveResult(results_path + "/" + "j3l", j3l, nb_bits, bk->params);
+  bool exists_jl2n = retrieveResult(results_path + "/" + "jl2n", jl2n, nb_bits, bk->params);
+  bool exists_k2ln = retrieveResult(results_path + "/" + "k2ln", k2ln, nb_bits, bk->params);
 
 
   if (exists_ijkl & exists_i2l2 & exists_iklw & exists_il2v & exists_j2k2 &
@@ -355,32 +338,47 @@ void HServer::calcComplejos(){
   multiply_float(jl2n, jl, ln, float_bits, nb_bits, bk);
   multiply_float(k2ln, k2, ln, float_bits, nb_bits, bk);
 
-  saveResult("ijkl", ijkl, nb_bits, bk->params);
-  saveResult("i2l2", i2l2, nb_bits, bk->params);
-  saveResult("iklw", iklw, nb_bits, bk->params);
-  saveResult("il2v", il2v, nb_bits, bk->params);
-  saveResult("j2k2", j2k2, nb_bits, bk->params);
-  saveResult("jk2w", jk2w, nb_bits, bk->params);
-  saveResult("jklv", jklv, nb_bits, bk->params);
-  saveResult("j3l", j3l, nb_bits, bk->params);
-  saveResult("jl2n", jl2n, nb_bits, bk->params);
-  saveResult("k2ln", k2ln, nb_bits, bk->params);
+  saveResult(results_path + "/" + "ijkl", ijkl, nb_bits, bk->params);
+  saveResult(results_path + "/" + "i2l2", i2l2, nb_bits, bk->params);
+  saveResult(results_path + "/" + "iklw", iklw, nb_bits, bk->params);
+  saveResult(results_path + "/" + "il2v", il2v, nb_bits, bk->params);
+  saveResult(results_path + "/" + "j2k2", j2k2, nb_bits, bk->params);
+  saveResult(results_path + "/" + "jk2w", jk2w, nb_bits, bk->params);
+  saveResult(results_path + "/" + "jklv", jklv, nb_bits, bk->params);
+  saveResult(results_path + "/" + "j3l", j3l, nb_bits, bk->params);
+  saveResult(results_path + "/" + "jl2n", jl2n, nb_bits, bk->params);
+  saveResult(results_path + "/" + "k2ln", k2ln, nb_bits, bk->params);
 
 };
 
-void HServer::calcula(LweSample* a, LweSample* b, LweSample* c, const vector<LweSample*> xs, const vector<LweSample*> ys, const int float_bits, const int nb_bits){
+void RegresionCuadratica::calcula(LweSample* a, LweSample* b, LweSample* c, const vector<LweSample*> xs, const vector<LweSample*> ys){
 
   initVectores(xs, ys);
   calcCuadrados();
   calcDuplas();
   calcComplejos();
 
+  for(int ci=0; ci < nb_bits; ci++){
+    bootsCOPY(&a[ci], 0, bk);
+    bootsCOPY(&b[ci], 0, bk);
+    bootsCOPY(&c[ci], 0, bk);
+  }
+  calcC(c);
+  calcB(b, c);
+  calcA(a, b, c);
+};
+
+void RegresionCuadratica::calcC(LweSample* c){
+
   /*
-    c = (ul - wj)/(ln - j2)
-    c += (jklv - jk2w - il2v + iklw)/(jl2n - k2ln - j3l + j2k2)
-    r = (j2k2-2(ijkl)+i2l2)/(jl2n - (k2ln - j3l + j2k2))
-    c = c / (1 - r)
+  c = (ul - wj)/(ln - j2)
+  c += (jklv - jk2w - il2v + iklw)/(jl2n - k2ln - j3l + j2k2)
+  r = (j2k2-2(ijkl)+i2l2)/(jl2n - (k2ln - j3l + j2k2))
+  c = c / (1 - r)
   */
+  bool exists_c = retrieveResult(results_path + "/" + "c", c, nb_bits, bk->params);
+  if (exists_c)
+      return;
 
   // c = (ul - wj)/(ln - j2)
   resta(aux1, ul, wj, nb_bits, bk);
@@ -399,8 +397,7 @@ void HServer::calcula(LweSample* a, LweSample* b, LweSample* c, const vector<Lwe
 
   sum(aux1, c, aux3, nb_bits, bk);
   for(int ci=0; ci < nb_bits; ci++)
-    bootsCOPY(&c[ci], &aux1[ci], bk);
-
+  bootsCOPY(&c[ci], &aux1[ci], bk);
 
   // r = (j2k2-2(ijkl)+i2l2)/(jl2n - k2ln - j3l + j2k2)
   LweSample* r = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
@@ -419,6 +416,15 @@ void HServer::calcula(LweSample* a, LweSample* b, LweSample* c, const vector<Lwe
   for(int ci=0; ci < nb_bits; ci++)
     bootsCOPY(&c[ci], &aux2[ci], bk);
 
+  saveResult(results_path + "/" + "c", ijkl, nb_bits, bk->params);
+
+};
+
+void RegresionCuadratica::calcB(LweSample* b, LweSample* c){
+
+  bool exists_b = retrieveResult(results_path + "/" + "b", b, nb_bits, bk->params);
+  if (exists_b)
+      return;
 
   /*
     b = (vl - kw + cjk - cil)/(jl - k2)
@@ -434,13 +440,25 @@ void HServer::calcula(LweSample* a, LweSample* b, LweSample* c, const vector<Lwe
   resta(aux1, jl, k2, nb_bits, bk);
   divide_float(b, aux3, aux1, float_bits, nb_bits, bk);
 
+  saveResult(results_path + "/" + "b", ijkl, nb_bits, bk->params);
+
+};
+
+void RegresionCuadratica::calcA(LweSample* a, LweSample* b, LweSample* c){
+
   /*
-    a = (w - (bk + cj)) / l
+  a = (w - (bk + cj)) / l
   */
+  bool exists_a = retrieveResult(results_path + "/" + "a", a, nb_bits, bk->params);
+  if (exists_a)
+      return;
+
   multiply_float(aux1, b, k, float_bits, nb_bits, bk);
   multiply_float(aux2, c, j, float_bits, nb_bits, bk);
   sum(aux3, aux1, aux2, nb_bits, bk);
   resta(aux1, w, aux3, nb_bits, bk);
   divide_float(a, aux1, l, float_bits, nb_bits, bk);
 
-}
+  saveResult(results_path + "/" + "a", ijkl, nb_bits, bk->params);
+
+};

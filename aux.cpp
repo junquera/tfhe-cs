@@ -39,3 +39,28 @@ void saveResult(string name, LweSample* result, int nb_bits, const TFheGateBoots
   for (int i=0; i<nb_bits; i++) export_gate_bootstrapping_ciphertext_toFile(answer_data, &result[i], params);
   fclose(answer_data);
 }
+
+
+void generaClaves(TFheGateBootstrappingSecretKeySet* &key) {
+	// TODO ¿QUé es esto?
+	const int minimum_lambda = 110;
+
+	TFheGateBootstrappingParameterSet* params = new_default_gate_bootstrapping_parameters(minimum_lambda);
+	//generate a random key
+	uint32_t seed[] = { 314, 1592, 657 };
+	tfhe_random_generator_setSeed(seed, 3);
+	key = new_random_gate_bootstrapping_secret_keyset(params);
+}
+
+void loadSecretKeyFromFile(string keyFileName, TFheGateBootstrappingSecretKeySet* &key){
+	//reads the cloud key from file
+	FILE* secret_key = fopen(keyFileName.c_str(),"rb");
+	key = new_tfheGateBootstrappingSecretKeySet_fromFile(secret_key);
+	fclose(secret_key);
+}
+
+void loadCloudKeyFromFile(string keyFileName, TFheGateBootstrappingCloudKeySet* &key){
+  FILE* cloud_key = fopen("cloud.key","rb");
+  key = new_tfheGateBootstrappingCloudKeySet_fromFile(cloud_key);
+  fclose(cloud_key);
+}

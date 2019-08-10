@@ -17,4 +17,8 @@ bool retrieveResult (string name, LweSample* result, int nb_bits, const TFheGate
 
 void saveResult(string name, LweSample* result, int nb_bits, const TFheGateBootstrappingParameterSet* params);
 
+void loadSecretKeyFromFile(string keyFileName, TFheGateBootstrappingSecretKeySet* &key);
+void loadCloudKeyFromFile(string keyFileName, TFheGateBootstrappingCloudKeySet* &key);
+void generaClaves(TFheGateBootstrappingSecretKeySet* &key);
+
 #endif
