@@ -23,34 +23,34 @@ const int float_bits = 7;
 // 	{1.0, 10.4}, {2.0, 11.8}, {3.0, 12.9}, {4.0, 14.3}, {5.0, 17.4}, {6.0, 18.7}, {7.0, 19.9}, {8.0, 19.8}, {9.0, 18.3}, {10.0, 17.8}, {11.0, 13.0}, {12.0, 11.2}
 // };
 
-void verify(){
-
-	HClient client(nb_bits, float_bits);
-
-	TFheGateBootstrappingCloudKeySet* bk;
-	client.getCloudKey(bk);
-
-	TFheGateBootstrappingParameterSet* params;
-	//if necessary, the params are inside the key
-	params = (TFheGateBootstrappingParameterSet*) &bk->params;
-
-  LweSample* a = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
-  LweSample* b = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
-  LweSample* c = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
-
-  // regresion_cuadratica(a, b, c, xs, ys, float_bits, nb_bits, bk);
-
-  // Descifrar resultado
-  int32_t a_int_answer = client.descifra(a);
-  int32_t b_int_answer = client.descifra(b);
-  int32_t c_int_answer = client.descifra(c);
-
-  float a_float_answer = hint2float(a_int_answer, float_bits);
-  float b_float_answer = hint2float(b_int_answer, float_bits);
-  float c_float_answer = hint2float(c_int_answer, float_bits);
-
-  cout << "a: " << a_float_answer << "\nb: " << b_float_answer << "\nc: " << c_float_answer << endl;
-}
+// void verify(){
+//
+// 	HClient client(nb_bits, float_bits);
+//
+// 	TFheGateBootstrappingCloudKeySet* bk;
+// 	client.getCloudKey(bk);
+//
+// 	TFheGateBootstrappingParameterSet* params;
+// 	//if necessary, the params are inside the key
+// 	params = (TFheGateBootstrappingParameterSet*) &bk->params;
+//
+//   LweSample* a = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
+//   LweSample* b = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
+//   LweSample* c = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
+//
+//   // regresion_cuadratica(a, b, c, xs, ys, float_bits, nb_bits, bk);
+//
+//   // Descifrar resultado
+//   int32_t a_int_answer = client.descifra(a);
+//   int32_t b_int_answer = client.descifra(b);
+//   int32_t c_int_answer = client.descifra(c);
+//
+//   float a_float_answer = hint2float(a_int_answer, float_bits);
+//   float b_float_answer = hint2float(b_int_answer, float_bits);
+//   float c_float_answer = hint2float(c_int_answer, float_bits);
+//
+//   cout << "a: " << a_float_answer << "\nb: " << b_float_answer << "\nc: " << c_float_answer << endl;
+// }
 
 int main(){
 
@@ -69,11 +69,12 @@ int main(){
 
 	TFheGateBootstrappingParameterSet* params;
 	//if necessary, the params are inside the key
-	params = (TFheGateBootstrappingParameterSet*) &bk->params;
+	params = (TFheGateBootstrappingParameterSet*) bk->params;
 
 	vector<LweSample*> xs, ys;
 
 	int32_t plain;
+	stringstream stringStream;
 	for(int i = 0; i < n_values; i++) {
     LweSample* cipher = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
 
@@ -82,19 +83,20 @@ int main(){
 
 		client.cifra(cipher, plain);
 
-		xs.push_back(cipher);
-    // stringstream stringStream;
-    // stringStream << "cabogataX" << i;
-    // string cgname = stringStream.str();
-    // saveResult(cgname, cipher, nb_bits, params);
+		// xs.push_back(cipher);
+		stringStream.str("");
+    stringStream << "cabogataX" << i;
+    saveResult(stringStream.str(), cipher, nb_bits, params);
 
 		// Añade ys
 		plain = float2hint(values[i][1], float_bits);
 
 		client.cifra(cipher, plain);
 
-		ys.push_back(cipher);
-    // saveResult("cabogataY" + i, cipher, nb_bits, params);
+		// ys.push_back(cipher);
+  	stringStream.str("");
+    stringStream << "cabogataY" << i;
+    saveResult(stringStream.str(), cipher, nb_bits, params);
 
 	}
 

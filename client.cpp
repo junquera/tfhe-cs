@@ -1,25 +1,30 @@
 #include "client.h"
 
-HClient::HClient(int nb_bits, int float_bits){
+HClient::HClient(int _nb_bits, int _float_bits){
 	string keyFileName = "secret.key";
+
+	nb_bits = _nb_bits;
+	float_bits = _float_bits;
 
 	if(exists_file(keyFileName)){
 		loadSecretKeyFromFile(keyFileName, key);
 	} else {
 		generaClaves(key);
 	}
+
 };
 
 void HClient::cifra(LweSample* result, int32_t input){
+	int32_t aux = input;
 	for(int i = 0; i < nb_bits; i++) {
-		bootsSymEncrypt(&result[i], (input>>i)&1, key);
+		bootsSymEncrypt(&result[i], (aux>>i)&1, key);
 	}
 };
 
 int32_t HClient::descifra(LweSample* input){
 
   int32_t int_answer = 0;
-  for (int i=0; i<nb_bits; i++) {
+  for (int i=0; i < nb_bits; i++) {
       int ai = bootsSymDecrypt(&input[i], key);
       int_answer |= (ai<<i);
   }
