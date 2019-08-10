@@ -71,7 +71,6 @@ int main(){
 	//if necessary, the params are inside the key
 	params = (TFheGateBootstrappingParameterSet*) bk->params;
 
-	vector<LweSample*> xs, ys;
 
 	int32_t plain;
 	stringstream stringStream;
@@ -80,20 +79,16 @@ int main(){
 
 		// Añade xs
 		plain = float2hint(values[i][0], float_bits);
-
 		client.cifra(cipher, plain);
 
-		// xs.push_back(cipher);
 		stringStream.str("");
     stringStream << "cabogataX" << i;
     saveResult(stringStream.str(), cipher, nb_bits, params);
 
 		// Añade ys
 		plain = float2hint(values[i][1], float_bits);
-
 		client.cifra(cipher, plain);
 
-		// ys.push_back(cipher);
   	stringStream.str("");
     stringStream << "cabogataY" << i;
     saveResult(stringStream.str(), cipher, nb_bits, params);
