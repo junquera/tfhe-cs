@@ -4,23 +4,21 @@
 #include "aux.h"
 class RegresionCuadratica {
   public:
-    RegresionCuadratica(int nb_bits, int float_bits, TFheGateBootstrappingCloudKeySet* bk, string results_path);
-    void calcula(LweSample* a, LweSample* b, LweSample* c, const vector<LweSample*> xs, const vector<LweSample*> ys);
+    RegresionCuadratica(int _nb_bits, int _float_bits, TFheGateBootstrappingCloudKeySet* _bk);
+    void calcula(LweSample* a, LweSample* b, LweSample* c, const vector<LweSample*> xs, const vector<LweSample*> ys, string results_path);
   private:
     int nb_bits;
     int float_bits;
 
     TFheGateBootstrappingCloudKeySet* bk;
 
-    string results_path;
-
-    void initVectores(const vector<LweSample*> xs, const vector<LweSample*> ys);
-    void calcCuadrados();
-    void calcDuplas();
-    void calcComplejos();
-    void calcC(LweSample* c);
-    void calcB(LweSample* b, LweSample* c);
-    void calcA(LweSample* a, LweSample* b, LweSample* c);
+    void initVectores(const vector<LweSample*> xs, const vector<LweSample*> ys, string results_path);
+    void calcCuadrados(string results_path);
+    void calcDuplas(string results_path);
+    void calcComplejos(string results_path);
+    void calcC(LweSample* c, string results_path);
+    void calcB(LweSample* b, LweSample* c, string results_path);
+    void calcA(LweSample* a, LweSample* b, LweSample* c, string results_path);
 
 
     LweSample* aux1;
@@ -71,7 +69,7 @@ class RegresionCuadratica {
 
 class HServer {
   public:
-    HServer(int nb_bits, int float_bits);
+    HServer(int _nb_bits, int _float_bits);
     void regresionCuadratica(LweSample* a, LweSample* b, LweSample* c, const vector<LweSample*> xs, const vector<LweSample*> ys, string cloud_key_path, string results_path);
   private:
     int nb_bits;

@@ -8,27 +8,24 @@ Operaciones de regresión cuadrática:
 
 TOTAL: 11424 segundos = 190 minutos = 3.17 horas
 */
-HServer::HServer(int nb_bits, int float_bits) {
-  nb_bits = nb_bits;
-  float_bits = float_bits;
+HServer::HServer(int _nb_bits, int _float_bits) {
+  nb_bits = _nb_bits;
+  float_bits = _float_bits;
 };
 
 void HServer::regresionCuadratica(LweSample* a, LweSample* b, LweSample* c, const vector<LweSample*> xs, const vector<LweSample*> ys, string cloud_key_path, string results_path) {
   TFheGateBootstrappingCloudKeySet* bk;
   loadCloudKeyFromFile(cloud_key_path, bk);
-
-  RegresionCuadratica rg(nb_bits, float_bits, bk, results_path);
-  rg.calcula(a, b, c, xs, ys);
+  RegresionCuadratica rg(nb_bits, float_bits, bk);
+  rg.calcula(a, b, c, xs, ys, results_path);
 };
 
-RegresionCuadratica::RegresionCuadratica(int nb_bits, int float_bits, TFheGateBootstrappingCloudKeySet* bk, string results_path) {
+RegresionCuadratica::RegresionCuadratica(int _nb_bits, int _float_bits, TFheGateBootstrappingCloudKeySet* _bk) {
 
-  nb_bits = nb_bits;
-  float_bits = float_bits;
+  nb_bits = _nb_bits;
+  float_bits = _float_bits;
 
-  bk = bk;
-
-  results_path = results_path;
+  bk = _bk;
 
   aux1 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   aux2 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
@@ -136,7 +133,7 @@ RegresionCuadratica::RegresionCuadratica(int nb_bits, int float_bits, TFheGateBo
   t_total = t_multi*multi + t_suma*suma
           = 22320 + 2016 = 24336s = 406.6m = 6.7 horas
 */
-void RegresionCuadratica::initVectores(const vector<LweSample*> xs, const vector<LweSample*> ys){
+void RegresionCuadratica::initVectores(const vector<LweSample*> xs, const vector<LweSample*> ys, string results_path){
 
   int values = xs.size();
   if(xs.size() != ys.size()){
@@ -144,14 +141,13 @@ void RegresionCuadratica::initVectores(const vector<LweSample*> xs, const vector
   }
 
   // Inicializa "n"
-  for(int ci=0; ci<nb_bits; ci++)
+  for(int ci=0; ci < nb_bits; ci++)
     bootsCONSTANT(&n[ci], (values>>ci)&1, bk);
 
   // Ajusta "n" a float_bits
   shiftl(aux1, n, float_bits, nb_bits, bk);
   for(int ci=0; ci < nb_bits; ci++)
     bootsCOPY(&n[ci], &aux1[ci], bk);
-
 
   bool exists_i = retrieveResult(results_path + "/" + "i", i, nb_bits, bk->params);
   bool exists_j = retrieveResult(results_path + "/" + "j", j, nb_bits, bk->params);
@@ -216,7 +212,7 @@ void RegresionCuadratica::initVectores(const vector<LweSample*> xs, const vector
       bootsCOPY(&v[cj], &aux2[cj], bk);
       bootsCOPY(&w[cj], &aux3[cj], bk);
     }
-
+    cout << "Init vector: " << ci << endl;
   }
 
   saveResult(results_path + "/" + "i", i, nb_bits, bk->params);
@@ -236,7 +232,7 @@ void RegresionCuadratica::initVectores(const vector<LweSample*> xs, const vector
 
   t_total = t_multi*multi = 372s = 6.2 minutos
 */
-void RegresionCuadratica::calcCuadrados(){
+void RegresionCuadratica::calcCuadrados(string results_path){
 
   bool exists_i2 = retrieveResult(results_path + "/" + "i2", i2, nb_bits, bk->params);
   bool exists_j2 = retrieveResult(results_path + "/" + "j2", j2, nb_bits, bk->params);
@@ -263,7 +259,7 @@ void RegresionCuadratica::calcCuadrados(){
 
   t_total = t_multi*multi = 837s = 13.9 minutos
 */
-void RegresionCuadratica::calcDuplas(){
+void RegresionCuadratica::calcDuplas(string results_path){
 
   bool exists_il = retrieveResult(results_path + "/" + "il", il, nb_bits, bk->params);
   bool exists_jk = retrieveResult(results_path + "/" + "jk", jk, nb_bits, bk->params);
@@ -307,7 +303,7 @@ void RegresionCuadratica::calcDuplas(){
 
   t_total = t_multi*multi = 930s = 15.5 minutos
 */
-void RegresionCuadratica::calcComplejos(){
+void RegresionCuadratica::calcComplejos(string results_path){
 
   bool exists_ijkl = retrieveResult(results_path + "/" + "ijkl", ijkl, nb_bits, bk->params);
   bool exists_i2l2 = retrieveResult(results_path + "/" + "i2l2", i2l2, nb_bits, bk->params);
@@ -349,21 +345,30 @@ void RegresionCuadratica::calcComplejos(){
 
 };
 
-void RegresionCuadratica::calcula(LweSample* a, LweSample* b, LweSample* c, const vector<LweSample*> xs, const vector<LweSample*> ys){
+void RegresionCuadratica::calcula(LweSample* a, LweSample* b, LweSample* c, const vector<LweSample*> xs, const vector<LweSample*> ys, string results_path){
 
-  initVectores(xs, ys);
-  calcCuadrados();
-  calcDuplas();
-  calcComplejos();
+  time_t t0 = time(NULL);
+  initVectores(xs, ys, results_path);
+  cout << "initVectores! " << time(NULL) - t0 << endl;
+  calcCuadrados(results_path);
+  cout << "calcCuadrados! " << time(NULL) - t0 << endl;
+  calcDuplas(results_path);
+  cout << "calcDuplas! " << time(NULL) - t0 << endl;
+  calcComplejos(results_path);
+  cout << "calcComplejos! " << time(NULL) - t0 << endl;
 
   for(int ci=0; ci < nb_bits; ci++){
     bootsCOPY(&a[ci], 0, bk);
     bootsCOPY(&b[ci], 0, bk);
     bootsCOPY(&c[ci], 0, bk);
   }
-  calcC(c);
-  calcB(b, c);
-  calcA(a, b, c);
+  calcC(c, results_path);
+  cout << "CalcC! " << time(NULL) - t0 << endl;
+  calcB(b, c, results_path);
+  cout << "CalcB! " << time(NULL) - t0 << endl;
+  calcA(a, b, c, results_path);
+  cout << "CalcA! " << time(NULL) - t0 << endl;
+
 };
 
 /*
@@ -376,7 +381,7 @@ void RegresionCuadratica::calcula(LweSample* a, LweSample* b, LweSample* c, cons
   t_total = t_div*div + t_suma*suma
           = 5944 + 96 = 6040s = 1.7 horas
 */
-void RegresionCuadratica::calcC(LweSample* c){
+void RegresionCuadratica::calcC(LweSample* c, string results_path){
 
   /*
   c = (ul - wj)/(ln - j2)
@@ -440,7 +445,7 @@ void RegresionCuadratica::calcC(LweSample* c){
   t_total = t_div*div + t_multi*multi + t_suma*suma
           = 1386 + 186 + 24 = 1596s = 26.6 minutos
 */
-void RegresionCuadratica::calcB(LweSample* b, LweSample* c){
+void RegresionCuadratica::calcB(LweSample* b, LweSample* c, string results_path){
 
   bool exists_b = retrieveResult(results_path + "/" + "b", b, nb_bits, bk->params);
   if (exists_b)
@@ -476,7 +481,7 @@ void RegresionCuadratica::calcB(LweSample* b, LweSample* c){
   t_total = t_div*div + t_multi*multi + t_suma*suma
           = 1386 + 186 + 12 = 1584s = 26.4 minutos
 */
-void RegresionCuadratica::calcA(LweSample* a, LweSample* b, LweSample* c){
+void RegresionCuadratica::calcA(LweSample* a, LweSample* b, LweSample* c, string results_path){
 
   /*
   a = (w - (bk + cj)) / l

@@ -11,10 +11,9 @@
 
 using namespace std;
 
+// TODO Pensar un buen sistema para poner el path
 bool exists_file (string name);
-
 bool retrieveResult (string name, LweSample* result, int nb_bits, const TFheGateBootstrappingParameterSet* params);
-
 void saveResult(string name, LweSample* result, int nb_bits, const TFheGateBootstrappingParameterSet* params);
 
 void loadSecretKeyFromFile(string keyFileName, TFheGateBootstrappingSecretKeySet* &key);
