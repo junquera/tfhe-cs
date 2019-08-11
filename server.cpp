@@ -123,15 +123,14 @@ RegresionCuadratica::RegresionCuadratica(int _nb_bits, int _float_bits, TFheGate
 };
 
 /*
-  values = 48
-  multi = 5*values = 240
-  suma = 7*values = 336
+  multi = 5
+  suma = 7
 
   t_multi = 93
   t_suma = 6
 
-  t_total = t_multi*multi + t_suma*suma
-          = 22320 + 2016 = 24336s = 406.6m = 6.7 horas
+  t_total = (t_multi*multi + t_suma*suma)*values
+          = (465 + 42)*values = (507*values)s = (8.45*values) minutos
 */
 void RegresionCuadratica::initVectores(const vector<LweSample*> xs, const vector<LweSample*> ys, string results_path){
 
@@ -180,9 +179,9 @@ void RegresionCuadratica::initVectores(const vector<LweSample*> xs, const vector
     multiply_float(x4, x2, x2, float_bits, nb_bits, bk);
 
     sum(aux1, i, x, nb_bits, bk);
-    sum(aux1, j, x2, nb_bits, bk);
-    sum(aux1, k, x3, nb_bits, bk);
-    sum(aux1, l, x4, nb_bits, bk);
+    sum(aux2, j, x2, nb_bits, bk);
+    sum(aux3, k, x3, nb_bits, bk);
+    sum(aux4, l, x4, nb_bits, bk);
 
     for(int cj=0; cj < nb_bits; cj++){
       bootsCOPY(&i[cj], &aux1[cj], bk);
@@ -241,10 +240,10 @@ void RegresionCuadratica::calcCuadrados(string results_path){
 
   if(exists_i2 & exists_j2 & exists_k2 & exists_l2) return;
 
-  h_pow(i2, k, 2, nb_bits, bk);
-  h_pow(j2, j, 2, nb_bits, bk);
-  h_pow(k2, k, 2, nb_bits, bk);
-  h_pow(l2, k, 2, nb_bits, bk);
+  multiply_float(i2, i, i, float_bits, nb_bits, bk);
+  multiply_float(j2, j, j, float_bits, nb_bits, bk);
+  multiply_float(k2, k, k, float_bits, nb_bits, bk);
+  multiply_float(l2, k, k, float_bits, nb_bits, bk);
 
   saveResult(results_path + "/" + "i2", i2, nb_bits, bk->params);
   saveResult(results_path + "/" + "j2", j2, nb_bits, bk->params);
