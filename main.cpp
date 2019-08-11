@@ -48,8 +48,6 @@ void test(){
        bootsSymEncrypt(&ciphertext2[i], (plaintext2>>i)&1, key);
    }
 
-   printf("Hi there! Today, I will ask the cloud what is the minimum between %d and %d\n",plaintext1, plaintext2);
-
    //export the 2x16 ciphertexts to a file (for the cloud)
    FILE* cloud_data = fopen("cloud.data","wb");
    for (int i=0; i<nb_bits; i++)
@@ -173,7 +171,7 @@ void test_times(){
 
   	TFheGateBootstrappingParameterSet* params = new_default_gate_bootstrapping_parameters(minimum_lambda);
      //generate a random key
-      uint64_t seed[] = { 314, 1592, 657 };
+      uint32_t seed[] = { 314, 1592, 657 };
       tfhe_random_generator_setSeed(seed,3);
       TFheGateBootstrappingSecretKeySet* key = new_random_gate_bootstrapping_secret_keyset(params);
 
