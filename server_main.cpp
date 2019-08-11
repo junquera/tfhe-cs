@@ -17,23 +17,23 @@ int main(){
   int nb_bits = 32;
   int float_bits = 7;
 
+  int values = 48;
+
   vector<LweSample*> xs, ys;
 
-
-  LweSample* result = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
-
   stringstream stringStream;
-  for(int i = 0; i < 12; i++){
-
+  for(int i = 0; i < values; i++){
+    LweSample* resultX = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
     stringStream.str("");
     stringStream << "ciudad_AX" << i;
-    retrieveResult(stringStream.str(), result, nb_bits, params);
-    xs.push_back(result);
+    retrieveResult(stringStream.str(), resultX, nb_bits, params);
+    xs.push_back(resultX);
 
+    LweSample* resultY = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
     stringStream.str("");
     stringStream << "ciudad_AY" << i;
-    retrieveResult(stringStream.str(), result, nb_bits, params);
-    ys.push_back(result);
+    retrieveResult(stringStream.str(), resultY, nb_bits, params);
+    ys.push_back(resultY);
   }
 
   LweSample* a = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
