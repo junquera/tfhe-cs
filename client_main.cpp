@@ -5,8 +5,8 @@
 #include <sstream>
 
 // Número de bits con los que queremos trabajar
-const int nb_bits = 32;
-const int float_bits = 7;
+const int nb_bits = 64;
+const int float_bits = 10;
 const int n_values = 48;
 
 // Valores [ (x1, y1), ... , (xn, yn) ]
@@ -34,7 +34,7 @@ void generateValues(HClient client, int n_values, float values[][2], string name
 	//if necessary, the params are inside the key
 	params = (TFheGateBootstrappingParameterSet*) bk->params;
 
-  int32_t plain;
+  int64_t plain;
   stringstream stringStream;
   for(int i = 0; i < n_values; i++) {
     LweSample* cipher = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
@@ -80,7 +80,7 @@ void retireveResults(float &a, float &b, float &c, HClient client, string name){
   retrieveResult(name + "c", crypt_c, nb_bits, params);
 
 
-  int32_t intval;
+  int64_t intval;
   intval = client.descifra(crypt_a);
   a = hint2float(intval, float_bits);
   intval = client.descifra(crypt_b);
@@ -102,7 +102,7 @@ float checkFileValue(HClient client, string fileName){
   LweSample* result = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
   retrieveResult(fileName, result, nb_bits, params);
 
-  int32_t intval = client.descifra(result);
+  int64_t intval = client.descifra(result);
 
   return hint2float(intval, float_bits);
 }
