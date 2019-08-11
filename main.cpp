@@ -164,8 +164,8 @@ void test_times(){
 
   cout << "op,bits,a,b,time(s)" << endl;
 
-  // Entre 4 y 32 bits
-  for(int i = 2; i < 6; i++){
+  // Entre 4 y 64 bits
+  for(int i = 2; i < 7; i++){
     // Número de bits con los que queremos trabajar
     const int nb_bits = pow(2, i);
 
