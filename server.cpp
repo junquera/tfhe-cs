@@ -159,6 +159,7 @@ void RegresionCuadratica::initVectores(const vector<LweSample*> xs, const vector
 
   if(exists_i & exists_j & exists_k & exists_l & exists_u & exists_v & exists_w) return;
 
+  // values = 2; // Para las pruebas
   for(int ci=0 ; ci < values; ci++){
     /*
       for x, y in xys:
@@ -357,9 +358,9 @@ void RegresionCuadratica::calcula(LweSample* a, LweSample* b, LweSample* c, cons
   cout << "calcComplejos! " << time(NULL) - t0 << endl;
 
   for(int ci=0; ci < nb_bits; ci++){
-    bootsCOPY(&a[ci], 0, bk);
-    bootsCOPY(&b[ci], 0, bk);
-    bootsCOPY(&c[ci], 0, bk);
+    bootsCONSTANT(&a[ci], 0, bk);
+    bootsCONSTANT(&b[ci], 0, bk);
+    bootsCONSTANT(&c[ci], 0, bk);
   }
   calcC(c, results_path);
   cout << "CalcC! " << time(NULL) - t0 << endl;
@@ -381,7 +382,6 @@ void RegresionCuadratica::calcula(LweSample* a, LweSample* b, LweSample* c, cons
           = 5944 + 96 = 6040s = 1.7 horas
 */
 void RegresionCuadratica::calcC(LweSample* c, string results_path){
-
   /*
   c = (ul - wj)/(ln - j2)
   c += (jklv - jk2w - il2v + iklw)/(jl2n - k2ln - j3l + j2k2)
@@ -391,6 +391,7 @@ void RegresionCuadratica::calcC(LweSample* c, string results_path){
   bool exists_c = retrieveResult(results_path + "/" + "c", c, nb_bits, bk->params);
   if (exists_c)
       return;
+
 
   // c = (ul - wj)/(ln - j2)
   resta(aux1, ul, wj, nb_bits, bk);
@@ -409,7 +410,7 @@ void RegresionCuadratica::calcC(LweSample* c, string results_path){
 
   sum(aux1, c, aux3, nb_bits, bk);
   for(int ci=0; ci < nb_bits; ci++)
-  bootsCOPY(&c[ci], &aux1[ci], bk);
+    bootsCOPY(&c[ci], &aux1[ci], bk);
 
   // r = (j2k2-2(ijkl)+i2l2)/(jl2n - k2ln - j3l + j2k2)
   LweSample* r = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
@@ -428,7 +429,7 @@ void RegresionCuadratica::calcC(LweSample* c, string results_path){
   for(int ci=0; ci < nb_bits; ci++)
     bootsCOPY(&c[ci], &aux2[ci], bk);
 
-  saveResult(results_path + "/" + "c", ijkl, nb_bits, bk->params);
+  saveResult(results_path + "/" + "c", c, nb_bits, bk->params);
 
 };
 
@@ -464,7 +465,7 @@ void RegresionCuadratica::calcB(LweSample* b, LweSample* c, string results_path)
   resta(aux1, jl, k2, nb_bits, bk);
   divide_float(b, aux3, aux1, float_bits, nb_bits, bk);
 
-  saveResult(results_path + "/" + "b", ijkl, nb_bits, bk->params);
+  saveResult(results_path + "/" + "b", b, nb_bits, bk->params);
 
 };
 
@@ -495,6 +496,6 @@ void RegresionCuadratica::calcA(LweSample* a, LweSample* b, LweSample* c, string
   resta(aux1, w, aux3, nb_bits, bk);
   divide_float(a, aux1, l, float_bits, nb_bits, bk);
 
-  saveResult(results_path + "/" + "a", ijkl, nb_bits, bk->params);
+  saveResult(results_path + "/" + "a", a, nb_bits, bk->params);
 
 };
