@@ -4,7 +4,7 @@ HClient::HClient(int _nb_bits, int _float_bits){
 
 	nb_bits = _nb_bits;
 	float_bits = _float_bits;
-	
+
 };
 
 void HClient::genKeys() {
@@ -15,16 +15,16 @@ void HClient::setKeysFromFile(string keyFileName){
 	loadSecretKeyFromFile(keyFileName, key);
 };
 
-void HClient::cifra(LweSample* result, int32_t input){
-	int32_t aux = input;
+void HClient::cifra(LweSample* result, int64_t input){
+	int64_t aux = input;
 	for(int i = 0; i < nb_bits; i++) {
 		bootsSymEncrypt(&result[i], (aux>>i)&1, key);
 	}
 };
 
-int32_t HClient::descifra(LweSample* input){
+int64_t HClient::descifra(LweSample* input){
 
-  int32_t int_answer = 0;
+  int64_t int_answer = 0;
   for (int i=0; i < nb_bits; i++) {
       int ai = bootsSymDecrypt(&input[i], key);
       int_answer |= (ai<<i);

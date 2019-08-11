@@ -37,6 +37,6 @@ void h_pow(LweSample* result, const LweSample* a, const int n, const int nb_bits
 void porDiez(LweSample* result, const LweSample* a, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk);
 void entreDiez(LweSample* result, const LweSample* a, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk);
 
-int32_t float2hint(float i, int float_bits);
-float hint2float(int32_t i, int float_bits);
+int64_t float2hint(float i, int float_bits);
+float hint2float(int64_t i, int float_bits);
 #endif

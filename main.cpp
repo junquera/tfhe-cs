@@ -12,7 +12,7 @@ void test(){
 	const int minimum_lambda = 110;
 
   // Número de bits con los que queremos trabajar
-  const int nb_bits = 32;
+  const int nb_bits = 64;
 
 	TFheGateBootstrappingParameterSet* params = new_default_gate_bootstrapping_parameters(minimum_lambda);
    //generate a random key
@@ -30,19 +30,19 @@ void test(){
     export_tfheGateBootstrappingCloudKeySet_toFile(cloud_key, &key->cloud);
     fclose(cloud_key);
 
-		int float_bits = 7;
+		int float_bits = 10;
 		float a1 = 26.3;
 		float a2 = 4.8;
 
     //generate encrypt the 16 bits of 2017
-   int32_t plaintext1 = float2hint(a1, float_bits);
+   int64_t plaintext1 = float2hint(a1, float_bits);
    LweSample* ciphertext1 = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
    for (int i=0; i<nb_bits; i++) {
        bootsSymEncrypt(&ciphertext1[i], (plaintext1>>i)&1, key);
    }
 
    //generate encrypt the 16 bits of 42
-   int32_t plaintext2 = float2hint(a2, float_bits);
+   int64_t plaintext2 = float2hint(a2, float_bits);
    LweSample* ciphertext2 = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
    for (int i=0; i<nb_bits; i++) {
        bootsSymEncrypt(&ciphertext2[i], (plaintext2>>i)&1, key);
@@ -141,7 +141,7 @@ void test(){
     fclose(answer_data);
 
     //decrypt and rebuild the 16-bit plaintext answer
-    int32_t int_answer = 0;
+    int64_t int_answer = 0;
     for (int i=0; i<nb_bits; i++) {
         int ai = bootsSymDecrypt(&answer[i], key);
         int_answer |= (ai<<i);
@@ -162,7 +162,7 @@ void test_times(){
 
   // TODO ¿QUé es esto?
 	const int minimum_lambda = 110;
-	const int float_bits = 7;
+	const int float_bits = 10;
 
   cout << "op,bits,a,b,time(s)" << endl;
 
@@ -173,7 +173,7 @@ void test_times(){
 
   	TFheGateBootstrappingParameterSet* params = new_default_gate_bootstrapping_parameters(minimum_lambda);
      //generate a random key
-      uint32_t seed[] = { 314, 1592, 657 };
+      uint64_t seed[] = { 314, 1592, 657 };
       tfhe_random_generator_setSeed(seed,3);
       TFheGateBootstrappingSecretKeySet* key = new_random_gate_bootstrapping_secret_keyset(params);
 
@@ -189,14 +189,14 @@ void test_times(){
 
 
       //generate encrypt the 16 bits of 2017
-     int32_t plaintext1 = rand() % ((int32_t) pow(2, nb_bits - 2));
+     int64_t plaintext1 = rand() % ((int64_t) pow(2, nb_bits - 2));
      LweSample* ciphertext1 = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
      for (int i=0; i<nb_bits; i++) {
          bootsSymEncrypt(&ciphertext1[i], (plaintext1>>i)&1, key);
      }
 
      //generate encrypt the 16 bits of 42
-     int32_t plaintext2 = rand() % ((int32_t) pow(2, nb_bits - 2));
+     int64_t plaintext2 = rand() % ((int64_t) pow(2, nb_bits - 2));
      LweSample* ciphertext2 = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
      for (int i=0; i<nb_bits; i++) {
          bootsSymEncrypt(&ciphertext2[i], (plaintext2>>i)&1, key);
@@ -340,8 +340,8 @@ void regresion(){
 	const int minimum_lambda = 110;
 
   // Número de bits con los que queremos trabajar
-  const int nb_bits = 32;
-	const int float_bits = 7;
+  const int nb_bits = 64;
+	const int float_bits = 10;
 
 	TFheGateBootstrappingParameterSet* params = new_default_gate_bootstrapping_parameters(minimum_lambda);
 	//generate a random key
@@ -358,7 +358,7 @@ void regresion(){
 	vector<LweSample*> xs;
 	vector<LweSample*> ys;
 
-	int32_t plain;
+	int64_t plain;
 	LweSample* cipher;
 
 	for(int i = 0; i < 48; i++) {
@@ -390,9 +390,9 @@ void regresion(){
 	regresion_cuadratica(a, b, c, xs, ys, float_bits, nb_bits, bk);
 
 	// Descifrar resultado
-	int32_t a_int_answer = 0;
-	int32_t b_int_answer = 0;
-	int32_t c_int_answer = 0;
+	int64_t a_int_answer = 0;
+	int64_t b_int_answer = 0;
+	int64_t c_int_answer = 0;
 
 	for (int i=0; i<nb_bits; i++) {
 			int ai = bootsSymDecrypt(&a[i], key);

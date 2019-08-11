@@ -637,14 +637,14 @@ void h_pow(LweSample* result, const LweSample* a, const int n, const int nb_bits
 Función para transformar un float a un entero para
 trabajar con criptografía Homomórfica, con float_bits BITS de precisión
 */
-int32_t float2hint(float i, int float_bits){
-  return (int32_t) (i * pow(2, float_bits));
+int64_t float2hint(float i, int float_bits){
+  return (int64_t) (i * pow(2, float_bits));
 }
 
 /*
 Función para recuperar un float de un entero tras
 trabajar con criptografía Homomórfica, con float_bits BITS de precisión
 */
-float hint2float(int32_t i, int float_bits){
+float hint2float(int64_t i, int float_bits){
   return i/pow(2, float_bits);
 }

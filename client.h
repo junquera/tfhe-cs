@@ -10,8 +10,8 @@ class HClient {
 		HClient(int _nb_bits, int _float_bits);
 		void genKeys();
 		void setKeysFromFile(string keyFileName);
-		void cifra(LweSample* answer, int32_t input);
-		int32_t descifra(LweSample* answer);
+		void cifra(LweSample* answer, int64_t input);
+		int64_t descifra(LweSample* answer);
 		void exportSecretKeyToFile(string name);
 		void exportCloudKeyToFile(string name);
 		void getCloudKey(TFheGateBootstrappingCloudKeySet* &cloudKey);

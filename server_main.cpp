@@ -16,10 +16,9 @@ int main(){
 	params = (TFheGateBootstrappingParameterSet*) bk->params;
 
 
-  int nb_bits = 32;
-  int float_bits = 7;
-
-  int values = 48;
+  int nb_bits = 64;
+  int float_bits = 10;
+  int values = 12;
 
 
   string data_ub, data_name, res_dest;
