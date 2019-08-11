@@ -5,10 +5,10 @@
 */
 bool exists_file (string name) {
     if (FILE *file = fopen(name.c_str(), "r")) {
-        fclose(file);
-        return true;
+      fclose(file);
+      return true;
     } else {
-        return false;
+      return false;
     }
 }
 
