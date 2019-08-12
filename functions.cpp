@@ -437,7 +437,47 @@ void shiftr(LweSample* result, const LweSample* a, const int posiciones, const i
   for(int i = 0; i < nb_bits; i++){
     bootsMUX(&result[i], &is_neg[0], &aux[i], &result[i], bk);
   }
+}
 
+
+// TODO shiftr, shiftl, divide con negativos
+// unsigned shiftl
+void u_shiftl(LweSample* result, const LweSample* a, const int posiciones, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
+  LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+
+  for(int i = 0; i < nb_bits; i++){
+    bootsCOPY(&result[i], &a[i], bk);
+  }
+
+  for(int i = 0; i < posiciones; i++){
+    for(int j = 1; j < nb_bits; j++)
+      bootsCOPY(&aux[j], &result[j-1], bk);
+
+    bootsCONSTANT(&aux[0], 0, bk);
+
+    for(int j = 0; j < nb_bits; j++)
+      bootsCOPY(&result[j], &aux[j], bk);
+  }
+}
+
+// unsigned shiftr
+void u_shiftr(LweSample* result, const LweSample* a, const int posiciones, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
+  LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+
+  for(int i = 0; i < nb_bits; i++){
+    bootsCOPY(&result[i], &a[i], bk);
+  }
+
+  for(int i = 0; i < posiciones; i++){
+
+    for(int j = 0; j < nb_bits - 1; j++)
+      bootsCOPY(&aux[j], &result[j+1], bk);
+
+    bootsCONSTANT(&aux[nb_bits - 1], 0, bk);
+
+    for(int j = 0; j < nb_bits; j++)
+      bootsCOPY(&result[j], &aux[j], bk);
+  }
 
 }
 
@@ -507,7 +547,7 @@ void divide(LweSample* result, const LweSample* a, const LweSample* b, const int
   }
   // END LOGICA_SIGNO
 
-  shiftl(div_aux, divisor, nb_bits - 1, 2*nb_bits, bk);
+  u_shiftl(div_aux, divisor, nb_bits - 1, 2*nb_bits, bk);
   for(int i = 0; i < 2*nb_bits; i++){
     bootsCOPY(&divisor[i], &div_aux[i], bk);
   }
@@ -537,7 +577,7 @@ void divide(LweSample* result, const LweSample* a, const LweSample* b, const int
     }
 
     // divisor = shiftr(divisor, 1)
-    shiftr(div_aux, divisor, 1, 2*nb_bits, bk);
+    u_shiftr(div_aux, divisor, 1, 2*nb_bits, bk);
     for(int j = 0; j < 2*nb_bits; j++)
       bootsCOPY(&divisor[j], &div_aux[j], bk);
   }
