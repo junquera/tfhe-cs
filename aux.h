@@ -1,7 +1,10 @@
 #ifndef _AUX_H_INCLUDED_
 #define _AUX_H_INCLUDED_
 
+#include <string>
 #include <iostream>
+#include <sstream>
+
 #include <vector>
 
 #include <tfhe/tfhe.h>
