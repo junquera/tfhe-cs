@@ -30,7 +30,7 @@ void test(){
     export_tfheGateBootstrappingCloudKeySet_toFile(cloud_key, &key->cloud);
     fclose(cloud_key);
 
-		int float_bits = 4; // Con 7 bits tengo 2 decimales
+		int float_bits = 10; // Con 7 bits tengo 2 decimales
 		float a1 = 60710;
 		float a2 = 60710;
 
