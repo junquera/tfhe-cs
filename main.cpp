@@ -30,8 +30,8 @@ void test(){
     export_tfheGateBootstrappingCloudKeySet_toFile(cloud_key, &key->cloud);
     fclose(cloud_key);
 
-		int float_bits = 10;
-		float a1 = 26.3;
+		int float_bits = 7;
+		float a1 = 6084;
 		float a2 = 4.8;
 
     //generate encrypt the 16 bits of 2017
@@ -94,8 +94,8 @@ void test(){
    // sum(result, ciphertext1, ciphertext2, 16, bk);
    // resta(result, ciphertext1, ciphertext2, 16, bk);
    // multiply(result, ciphertext1, ciphertext2, nb_bits, bk);
-   // multiply_float(result, ciphertext1, ciphertext2, float_bits, nb_bits, bk);
-   divide_float(result, ciphertext1, ciphertext2, float_bits, nb_bits, bk);
+	 // divide_float(result, ciphertext1, ciphertext2, float_bits, nb_bits, bk);
+   multiply_float(result, ciphertext1, ciphertext1, float_bits, nb_bits, bk);
    // pow(result, ciphertext2, 2, nb_bits, bk);
    // divide(result, ciphertext1, ciphertext2, nb_bits, bk);
    // mayor_igual(result, ciphertext2, ciphertext1, nb_bits, bk);
@@ -410,6 +410,7 @@ void regresion(){
 
 int main(){
 	// regresion();
-	test_times();
+	// test_times();
+	test();
 	return 0;
 }

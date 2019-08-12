@@ -67,4 +67,20 @@ divide,32,1371
 divide_float,32,1467
 porDiez,32,20
 entreDiez,32,45
+is_negative,64,0
+minimum,64,14
+maximum,64,20
+sum,64,7
+negativo,64,8
+resta,64,16
+multiply,64,339
+multiply_float,64,355
+mayor,64,25
+mayor_igual,64,28
+shiftl,64,0
+shiftr,64,0
+divide,64,6232
+divide_float,64,5946
+porDiez,64,47
+entreDiez,64,103
 

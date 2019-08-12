@@ -343,9 +343,22 @@ void mayor_igual(LweSample* result, const LweSample* a, const LweSample* b, cons
 void shiftl(LweSample* result, const LweSample* a, const int posiciones, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
   LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
 
+  LweSample* neg = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  LweSample* is_neg = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+  LweSample* val = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  LweSample* res = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+
+  negativo(neg, a, nb_bits, bk);
+  is_negative(is_neg, a, nb_bits, bk);
+
   for(int i = 0; i < nb_bits; i++){
-    bootsCOPY(&result[i], &a[i], bk);
+    bootsMUX(&val[i], &is_neg[0], &neg[i], &a[i], bk);
   }
+
+  for(int i = 0; i < nb_bits; i++){
+    bootsCOPY(&result[i], &val[i], bk);
+  }
+
   for(int i = 0; i < posiciones; i++){
     for(int j = 1; j < nb_bits; j++)
       bootsCOPY(&aux[j], &result[j-1], bk);
@@ -356,13 +369,30 @@ void shiftl(LweSample* result, const LweSample* a, const int posiciones, const i
       bootsCOPY(&result[j], &aux[j], bk);
   }
 
+  negativo(aux, result, nb_bits, bk);
+  for(int i = 0; i < nb_bits; i++){
+    bootsMUX(&result[i], &is_neg[0], &aux[i], &result[i], bk);
+  }
+
 }
 
 void shiftr(LweSample* result, const LweSample* a, const int posiciones, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
   LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
 
+  LweSample* is_neg = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+  LweSample* neg = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  LweSample* val = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  LweSample* res = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+
+  negativo(neg, a, nb_bits, bk);
+  is_negative(is_neg, a, nb_bits, bk);
+
   for(int i = 0; i < nb_bits; i++){
-    bootsCOPY(&result[i], &a[i], bk);
+    bootsMUX(&val[i], &is_neg[0], &neg[i], &a[i], bk);
+  }
+
+  for(int i = 0; i < nb_bits; i++){
+    bootsCOPY(&result[i], &val[i], bk);
   }
 
   for(int i = 0; i < posiciones; i++){
@@ -375,6 +405,12 @@ void shiftr(LweSample* result, const LweSample* a, const int posiciones, const i
     for(int j = 0; j < nb_bits; j++)
       bootsCOPY(&result[j], &aux[j], bk);
   }
+
+  negativo(aux, result, nb_bits, bk);
+  for(int i = 0; i < nb_bits; i++){
+    bootsMUX(&result[i], &is_neg[0], &aux[i], &result[i], bk);
+  }
+
 
 }
 
