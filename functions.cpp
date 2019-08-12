@@ -105,20 +105,46 @@ void minimum(LweSample* result, const LweSample* a, const LweSample* b, const in
 
 // this function compares two multibit words, and puts the min in result
 void maximum(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {
-  LweSample* min = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
-  LweSample* eq = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+    LweSample* tmps = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+    LweSample* aGreater = new_gate_bootstrapping_ciphertext_array(2, bk->params);
 
-  minimum(min, a, b, nb_bits, bk);
+    LweSample* minimumMismoSigno = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+    LweSample* minimumOneNegative = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+    LweSample* oneNegative = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+    LweSample* negativoA = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+    LweSample* negativoB = new_gate_bootstrapping_ciphertext_array(2, bk->params);
 
-  // if a == min, max = b; else max = a;
-  equal(eq, a, min, nb_bits, bk);
-  //t
-  for (int i=0; i<nb_bits; i++) {
-      bootsMUX(&result[i], &eq[0], &b[i], &a[i], bk);
-  }
+    is_negative(negativoA, a, nb_bits, bk);
+    is_negative(negativoB, b, nb_bits, bk);
 
-  delete_gate_bootstrapping_ciphertext_array(nb_bits, min);
-  delete_gate_bootstrapping_ciphertext_array(2, eq);
+    bootsXOR(&oneNegative[0], &negativoA[0], &negativoB[0], bk);
+
+    // a > b = soloOneNegative & is_negative(b)
+    bootsAND(&aGreater[0], &oneNegative[0], &negativoB[0], bk);
+    for(int i = 0; i < nb_bits; i++){
+      bootsMUX(&minimumOneNegative[i], &aGreater[0], &b[i], &a[i], bk);
+    }
+
+    //initialize the carry to 0
+    bootsCONSTANT(&tmps[0], 0, bk);
+
+    //run the elementary comparator gate n times
+    for (int i=0; i<nb_bits; i++) {
+        compare_bit(&tmps[0], &a[i], &b[i], &tmps[0], &tmps[1], bk);
+    }
+
+    //tmps[0] is the result of the comparaison: 0 if a is larger, 1 if b is larger
+    //select the max and copy it to the result
+    for (int i=0; i<nb_bits; i++) {
+        bootsMUX(&minimumMismoSigno[i], &tmps[0], &b[i], &a[i], bk);
+    }
+
+    // Todo igual que en minimum, pero devolviendo el contrario
+    for (int i=0; i<nb_bits; i++) {
+        bootsMUX(&result[i], &oneNegative[0], &minimumMismoSigno[i], &minimumOneNegative[i], bk);
+    }
+
+    delete_gate_bootstrapping_ciphertext_array(2, tmps);
 }
 
 void add_bit(LweSample* result, LweSample* carry_out, const LweSample* a, const LweSample* b, const LweSample* carry_in, const TFheGateBootstrappingCloudKeySet* bk){
@@ -320,23 +346,24 @@ void multiply(LweSample* result, const LweSample* a, const LweSample* b, const i
   delete_gate_bootstrapping_ciphertext_array(2, corrige);
 }
 
-void mayor(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
-  LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
-
-  maximum(aux, a, b, nb_bits, bk);
-
-  equal(result, aux, a, nb_bits, bk);
-}
-
+/*
+ 0 si a >= b
+ ¡No tiene en cuenta el signo!
+*/
 void mayor_igual(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
-  LweSample* may = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+  LweSample* aux = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+  LweSample* end = new_gate_bootstrapping_ciphertext_array(2, bk->params);
   LweSample* eq = new_gate_bootstrapping_ciphertext_array(2, bk->params);
 
-  mayor(may, a, b, nb_bits, bk);
-  equal(eq, a, b, nb_bits, bk);
-
-  bootsOR(&result[0], &may[0], &eq[0], bk);
-
+  bootsCONSTANT(&end[0], 0, bk);
+  bootsCONSTANT(&result[0], 0, bk);
+  for(int i = 0; i < nb_bits; i++){
+    bootsXNOR(&eq[0], &a[i], &b[i], bk);
+    bootsMUX(&aux[0], &eq[0], &result[0], &b[i], bk);
+    // En el momento que no son iguales se fija el valor
+    bootsMUX(&result[0], &end[0], &result[0], &aux[0], bk);
+    bootsOR(&end[0], &end[0], &eq[0], bk);
+  }
 }
 
 // TODO shiftr, shiftl, divide con negativos
