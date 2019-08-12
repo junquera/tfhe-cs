@@ -1,7 +1,6 @@
 #include "functions.h"
 using namespace std;
 
-
 // TODO Limpiar variables (delete_gate_boots...)
 // elementary full comparator gate that is used to compare the i-th bit:
 //   input: ai and bi the i-th bit of a and b
@@ -269,7 +268,6 @@ void multiply(LweSample* result, const LweSample* a, const LweSample* b, const i
 
   LweSample* corrige = new_gate_bootstrapping_ciphertext_array(2, bk->params);
 
-
   // TODO Ajustar numero de bits para que: nb(result) = nb(a)+nb(b)
   for(int i = 0; i < nb_bits; i++){
     bootsCONSTANT(&aux[i], 0, bk);
@@ -286,7 +284,6 @@ void multiply(LweSample* result, const LweSample* a, const LweSample* b, const i
     bootsCONSTANT(&isNegativeB[i], 0, bk);
     bootsCONSTANT(&corrige[i], 0, bk);
   }
-
 
   // BEGIN LOGICA_SIGNO
   negativo(negatA, a, nb_bits, bk);
@@ -318,7 +315,6 @@ void multiply(LweSample* result, const LweSample* a, const LweSample* b, const i
     }
 
     sum(aux2, aux, result, nb_bits, bk);
-
 
     for(int j = 0; j < nb_bits; j++) {
       bootsCOPY(&result[j], &aux2[j], bk);
@@ -612,7 +608,7 @@ void porDiez(LweSample* result, const LweSample* a, const int nb_bits, const TFh
 void reescala(LweSample* result, const LweSample* a, const int nb_bits_result, const int nb_bits,  const TFheGateBootstrappingCloudKeySet* bk){
   LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits_result, bk->params);
 
-  int bits = nb_bits > nb_bits_result ? nb_bits_result : nb_bits;
+  int bits = (nb_bits > nb_bits_result) ? nb_bits_result : nb_bits;
   for(int i=0; i < bits - 1; i++)
     bootsCOPY(&result[i], &a[i], bk);
 
