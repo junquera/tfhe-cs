@@ -642,6 +642,8 @@ void reescala(LweSample* result, const LweSample* a, const int nb_bits_result, c
 
 }
 
+
+// En funciones _flouat los datos intermedios ocupan el doble...
 void multiply_float(LweSample* result, const LweSample* a, const LweSample* b, const int float_bits, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
   LweSample* aux = new_gate_bootstrapping_ciphertext_array(2*nb_bits, bk->params);
   LweSample* res_aux = new_gate_bootstrapping_ciphertext_array(2*nb_bits, bk->params);
@@ -652,7 +654,7 @@ void multiply_float(LweSample* result, const LweSample* a, const LweSample* b, c
   reescala(aux_b, b, 2*nb_bits, nb_bits, bk);
 
   multiply(aux, aux_a, aux_b, 2*nb_bits, bk);
-  shiftr(res_aux, aux, float_bits, 2*nb_bits, bk);
+  shiftr(res_aux, aux, float_bits, 2*nb_bits, bk); // Proteger los decimales
 
   reescala(result, res_aux, nb_bits, 2*nb_bits, bk);
 
@@ -665,7 +667,7 @@ void divide_float(LweSample* result, const LweSample* a, const LweSample* b, con
   LweSample* aux_res = new_gate_bootstrapping_ciphertext_array(2*nb_bits, bk->params);
 
   reescala(aux, a, 2*nb_bits, nb_bits, bk);
-  shiftl(aux_a, aux, float_bits, 2*nb_bits, bk);
+  shiftl(aux_a, aux, float_bits, 2*nb_bits, bk); // Proteger los decimales
 
   reescala(aux_b, b, 2*nb_bits, nb_bits, bk);
 
