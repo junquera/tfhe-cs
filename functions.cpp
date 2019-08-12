@@ -553,23 +553,48 @@ void porDiez(LweSample* result, const LweSample* a, const int nb_bits, const TFh
     bootsMUX(&result[i], &corrige[0], &auxA[i], &n[i], bk);
 }
 
-/*
-q = (n >> 1) + (n >> 2)
-q = q + (q >> 4)
-q = q + (q >> 8)
-q = q + (q >> 16)
-q = q >> 3
-r = n - (((q << 2) + q) << 1)
+// Reescalar de nb_bits a nb_bits_result
+void reescala(LweSample* result, const LweSample* a, const int nb_bits_result, const int nb_bits,  const TFheGateBootstrappingCloudKeySet* bk){
+  LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits_result, bk->params);
+  LweSample* aux_res = new_gate_bootstrapping_ciphertext_array(nb_bits_result, bk->params);
 
-result = q + (r >> 9)
-*/
+  LweSample* neg_a = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  LweSample* is_neg_a = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+
+  for(int i=0; i < nb_bits_result; i++){
+    bootsCONSTANT(&aux[i], 0, bk);
+  }
+
+  negativo(neg_a, a, nb_bits, bk);
+  is_negative(is_neg_a, a, nb_bits, bk);
+
+  for(int i=0; i < nb_bits; i++){
+    bootsMUX(&aux[i], &is_neg_a[0], &neg_a[i], &a[i], bk);
+  }
+
+  negativo(aux_res, aux, nb_bits_result, bk);
+
+  for(int i=0; i < nb_bits_result; i++){
+    bootsMUX(&result[i], &is_neg_a[0], &aux_res[i], &aux[i], bk);
+  }
+
+}
 
 void multiply_float(LweSample* result, const LweSample* a, const LweSample* b, const int float_bits, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
-  LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  LweSample* aux = new_gate_bootstrapping_ciphertext_array(2*nb_bits, bk->params);
+  LweSample* res_aux = new_gate_bootstrapping_ciphertext_array(2*nb_bits, bk->params);
+  LweSample* aux_a = new_gate_bootstrapping_ciphertext_array(2*nb_bits, bk->params);
+  LweSample* aux_b = new_gate_bootstrapping_ciphertext_array(2*nb_bits, bk->params);
 
-  multiply(aux, a, b, nb_bits, bk);
-  shiftr(result, aux, float_bits, nb_bits, bk);
+  reescala(aux_a, a, 2*nb_bits, nb_bits, bk);
+  reescala(aux_b, b, 2*nb_bits, nb_bits, bk);
 
+  multiply(aux, aux_a, aux_b, 2*nb_bits, bk);
+  shiftr(res_aux, aux, float_bits, 2*nb_bits, bk);
+
+  for(int i = 0; i < nb_bits; i++){
+    bootsCOPY(&result[i], &res_aux[i], bk);
+  }
 }
 
 void divide_float(LweSample* result, const LweSample* a, const LweSample* b, const int float_bits, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
