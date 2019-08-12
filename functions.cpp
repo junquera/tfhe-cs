@@ -351,18 +351,12 @@ void multiply(LweSample* result, const LweSample* a, const LweSample* b, const i
  ¡No tiene en cuenta el signo!
 */
 void mayor_igual(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
-  LweSample* aux = new_gate_bootstrapping_ciphertext_array(2, bk->params);
-  LweSample* end = new_gate_bootstrapping_ciphertext_array(2, bk->params);
   LweSample* eq = new_gate_bootstrapping_ciphertext_array(2, bk->params);
 
-  bootsCONSTANT(&end[0], 0, bk);
   bootsCONSTANT(&result[0], 0, bk);
   for(int i = 0; i < nb_bits; i++){
     bootsXNOR(&eq[0], &a[i], &b[i], bk);
-    bootsMUX(&aux[0], &eq[0], &result[0], &b[i], bk);
-    // En el momento que no son iguales se fija el valor
-    bootsMUX(&result[0], &end[0], &result[0], &aux[0], bk);
-    bootsOR(&end[0], &end[0], &eq[0], bk);
+    bootsMUX(&result[0], &eq[0], &result[0], &a[i], bk);
   }
 }
 
@@ -635,7 +629,8 @@ void reescala(LweSample* result, const LweSample* a, const int nb_bits_result, c
   negativo(neg_a, a, nb_bits, bk);
   is_negative(is_neg_a, a, nb_bits, bk);
 
-  for(int i=0; i < nb_bits; i++){
+  int bits = nb_bits < nb_bits_result ? nb_bits : nb_bits_result;
+  for(int i=0; i < bits; i++){
     bootsMUX(&aux[i], &is_neg_a[0], &neg_a[i], &a[i], bk);
   }
 
@@ -659,15 +654,23 @@ void multiply_float(LweSample* result, const LweSample* a, const LweSample* b, c
   multiply(aux, aux_a, aux_b, 2*nb_bits, bk);
   shiftr(res_aux, aux, float_bits, 2*nb_bits, bk);
 
-  for(int i = 0; i < nb_bits; i++){
-    bootsCOPY(&result[i], &res_aux[i], bk);
-  }
+  reescala(result, res_aux, nb_bits, 2*nb_bits, bk);
+
 }
 
 void divide_float(LweSample* result, const LweSample* a, const LweSample* b, const int float_bits, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
-  LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
-  shiftl(aux, a, float_bits, nb_bits, bk);
-  divide(result, aux, b, nb_bits, bk);
+  LweSample* aux = new_gate_bootstrapping_ciphertext_array(2*nb_bits, bk->params);
+  LweSample* aux_a = new_gate_bootstrapping_ciphertext_array(2*nb_bits, bk->params);
+  LweSample* aux_b = new_gate_bootstrapping_ciphertext_array(2*nb_bits, bk->params);
+  LweSample* aux_res = new_gate_bootstrapping_ciphertext_array(2*nb_bits, bk->params);
+
+  reescala(aux, a, 2*nb_bits, nb_bits, bk);
+  shiftl(aux_a, aux, float_bits, 2*nb_bits, bk);
+
+  reescala(aux_b, b, 2*nb_bits, nb_bits, bk);
+
+  divide(aux_res, aux_a, aux_b, 2*nb_bits, bk);
+  reescala(result, aux_res, nb_bits, 2*nb_bits, bk);
 }
 
 
