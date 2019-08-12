@@ -16,9 +16,8 @@ void HClient::setKeysFromFile(string keyFileName){
 };
 
 void HClient::cifra(LweSample* result, int64_t input){
-	int64_t aux = input;
 	for(int i = 0; i < nb_bits; i++) {
-		bootsSymEncrypt(&result[i], (aux>>i)&1, key);
+		bootsSymEncrypt(&result[i], ((int)(input/pow(2,i)))&1, key);
 	}
 };
 
@@ -27,7 +26,7 @@ int64_t HClient::descifra(LweSample* input){
   int64_t int_answer = 0;
   for (int i=0; i < nb_bits; i++) {
       int ai = bootsSymDecrypt(&input[i], key);
-      int_answer |= (ai<<i);
+      int_answer += (int64_t) (ai*pow(2,i));
   }
 
 	return int_answer;
