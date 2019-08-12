@@ -325,7 +325,6 @@ void multiply(LweSample* result, const LweSample* a, const LweSample* b, const i
     }
   }
 
-
   // BEGIN LOGICA_SIGNO
   // Determinamos si devolver el resultado positivo o negativo
   negativo(aux, result, nb_bits, bk);
@@ -358,6 +357,7 @@ void mayor_igual(LweSample* result, const LweSample* a, const LweSample* b, cons
     bootsXNOR(&eq[0], &a[i], &b[i], bk);
     bootsMUX(&result[0], &eq[0], &result[0], &a[i], bk);
   }
+
 }
 
 // TODO shiftr, shiftl, divide con negativos
@@ -556,18 +556,12 @@ void divide(LweSample* result, const LweSample* a, const LweSample* b, const int
     // resto = gt? sub(dividendo, divisor) : resto
     resta(div_aux, dividendo, divisor, 2*nb_bits, bk);
     for(int j = 0; j < 2*nb_bits; j++){
-      bootsMUX(&div_aux2[j], &gt[0], &div_aux[j], &dividendo[j], bk);
-    }
-    for(int j = 0; j < 2*nb_bits; j++){
-      bootsCOPY(&resto[j], &div_aux2[j], bk);
+      bootsMUX(&resto[j], &gt[0], &div_aux[j], &dividendo[j], bk);
     }
 
     // dividendo = gt ? resto : dividendo
     for(int j = 0; j < 2*nb_bits; j++){
-      bootsMUX(&div_aux2[j], &gt[0], &resto[j], &dividendo[j], bk);
-    }
-    for(int j = 0; j < 2*nb_bits; j++){
-      bootsCOPY(&dividendo[j], &div_aux2[j], bk);
+      bootsMUX(&dividendo[j], &gt[0], &resto[j], &dividendo[j], bk);
     }
 
     // divisor = shiftr(divisor, 1)
@@ -617,31 +611,13 @@ void porDiez(LweSample* result, const LweSample* a, const int nb_bits, const TFh
 // Reescalar de nb_bits a nb_bits_result
 void reescala(LweSample* result, const LweSample* a, const int nb_bits_result, const int nb_bits,  const TFheGateBootstrappingCloudKeySet* bk){
   LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits_result, bk->params);
-  LweSample* aux_res = new_gate_bootstrapping_ciphertext_array(nb_bits_result, bk->params);
 
-  LweSample* neg_a = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
-  LweSample* is_neg_a = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+  int bits = nb_bits > nb_bits_result ? nb_bits_result : nb_bits;
+  for(int i=0; i < bits - 1; i++)
+    bootsCOPY(&result[i], &a[i], bk);
 
-  for(int i=0; i < nb_bits_result; i++){
-    bootsCONSTANT(&aux[i], 0, bk);
-  }
-
-  negativo(neg_a, a, nb_bits, bk);
-  is_negative(is_neg_a, a, nb_bits, bk);
-
-  int bits = nb_bits < nb_bits_result ? nb_bits : nb_bits_result;
-  for(int i=0; i < bits; i++){
-    bootsMUX(&aux[i], &is_neg_a[0], &neg_a[i], &a[i], bk);
-  }
-
-  negativo(aux_res, aux, nb_bits_result, bk);
-
-  for(int i=0; i < nb_bits_result; i++){
-    bootsMUX(&result[i], &is_neg_a[0], &aux_res[i], &aux[i], bk);
-  }
-
+  bootsCOPY(&result[nb_bits_result-1], &a[nb_bits-1], bk);
 }
-
 
 // En funciones _flouat los datos intermedios ocupan el doble...
 void multiply_float(LweSample* result, const LweSample* a, const LweSample* b, const int float_bits, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
