@@ -3,5 +3,6 @@
 main
 client
 server
+test
 
 \.~lock\.secret\.key#
