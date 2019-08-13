@@ -103,15 +103,41 @@ RegresionCuadratica::RegresionCuadratica(int _nb_bits, int _float_bits, TFheGate
   }
 };
 
+void RegresionCuadratica::calcula(LweSample* a, LweSample* b, LweSample* c, const vector<LweSample*> xs, const vector<LweSample*> ys, string results_path){
+
+  time_t t0 = time(NULL);
+  initVectores(xs, ys, results_path);
+  cout << "initVectores! " << time(NULL) - t0 << endl;
+  calcCuadrados(results_path);
+  cout << "calcCuadrados! " << time(NULL) - t0 << endl;
+  calcDuplas(results_path);
+  cout << "calcDuplas! " << time(NULL) - t0 << endl;
+  calcComplejos(results_path);
+  cout << "calcComplejos! " << time(NULL) - t0 << endl;
+
+  for(int ci=0; ci < nb_bits; ci++){
+    bootsCONSTANT(&a[ci], 0, bk);
+    bootsCONSTANT(&b[ci], 0, bk);
+    bootsCONSTANT(&c[ci], 0, bk);
+  }
+  calcC(c, results_path);
+  cout << "CalcC! " << time(NULL) - t0 << endl;
+  calcB(b, c, results_path);
+  cout << "CalcB! " << time(NULL) - t0 << endl;
+  calcA(a, b, c, results_path);
+  cout << "CalcA! " << time(NULL) - t0 << endl;
+
+};
+
 /*
   multi = 5
   suma = 7
 
-  t_multi = 93
-  t_suma = 6
+  t_multi = 1257
+  t_suma = 8
 
   t_total = (t_multi*multi + t_suma*suma)*values
-          = (465 + 42)*values = (507*values)s = (8.45*values) minutos
+          = (6341*values)s = (105.68*values) minutos
 */
 void RegresionCuadratica::initVectores(const vector<LweSample*> xs, const vector<LweSample*> ys, string results_path){
 
@@ -218,9 +244,9 @@ void RegresionCuadratica::initVectores(const vector<LweSample*> xs, const vector
 /*
   multi = 4
 
-  t_multi = 93
+  t_multi = 1257
 
-  t_total = t_multi*multi = 372s = 6.2 minutos
+  t_total = t_multi*multi = 5028s = 83.8 minutos
 */
 void RegresionCuadratica::calcCuadrados(string results_path){
 
@@ -245,9 +271,9 @@ void RegresionCuadratica::calcCuadrados(string results_path){
 /*
   multi = 9
 
-  t_multi = 93
+  t_multi = 1257
 
-  t_total = t_multi*multi = 837s = 13.9 minutos
+  t_total = t_multi*multi = 11313s = 188.55m = 3.14 horas
 */
 void RegresionCuadratica::calcDuplas(string results_path){
 
@@ -289,9 +315,9 @@ void RegresionCuadratica::calcDuplas(string results_path){
 /*
   multi = 10
 
-  t_multi = 93
+  t_multi = 1257
 
-  t_total = t_multi*multi = 930s = 15.5 minutos
+  t_total = t_multi*multi = 12570s = 209.5m = 3.49 horas
 */
 void RegresionCuadratica::calcComplejos(string results_path){
 
@@ -335,41 +361,15 @@ void RegresionCuadratica::calcComplejos(string results_path){
 
 };
 
-void RegresionCuadratica::calcula(LweSample* a, LweSample* b, LweSample* c, const vector<LweSample*> xs, const vector<LweSample*> ys, string results_path){
-
-  time_t t0 = time(NULL);
-  initVectores(xs, ys, results_path);
-  cout << "initVectores! " << time(NULL) - t0 << endl;
-  calcCuadrados(results_path);
-  cout << "calcCuadrados! " << time(NULL) - t0 << endl;
-  calcDuplas(results_path);
-  cout << "calcDuplas! " << time(NULL) - t0 << endl;
-  calcComplejos(results_path);
-  cout << "calcComplejos! " << time(NULL) - t0 << endl;
-
-  for(int ci=0; ci < nb_bits; ci++){
-    bootsCONSTANT(&a[ci], 0, bk);
-    bootsCONSTANT(&b[ci], 0, bk);
-    bootsCONSTANT(&c[ci], 0, bk);
-  }
-  calcC(c, results_path);
-  cout << "CalcC! " << time(NULL) - t0 << endl;
-  calcB(b, c, results_path);
-  cout << "CalcB! " << time(NULL) - t0 << endl;
-  calcA(a, b, c, results_path);
-  cout << "CalcA! " << time(NULL) - t0 << endl;
-
-};
-
 /*
   suma = 16
   div = 4
 
-  t_suma = 6
-  t_div = 1386
+  t_suma = 8
+  t_div = 11662
 
   t_total = t_div*div + t_suma*suma
-          = 5944 + 96 = 6040s = 1.7 horas
+          = 46776s = 13 horas
 */
 void RegresionCuadratica::calcC(LweSample* c, string results_path){
   /*
@@ -428,12 +428,12 @@ void RegresionCuadratica::calcC(LweSample* c, string results_path){
   multi = 2
   div = 1
 
-  t_suma = 6
-  t_multi = 93
-  t_div = 1386
+  t_suma = 8
+  t_multi = 1257
+  t_div = 11662
 
   t_total = t_div*div + t_multi*multi + t_suma*suma
-          = 1386 + 186 + 24 = 1596s = 26.6 minutos
+          = 14208s = 3.94 horas
 */
 void RegresionCuadratica::calcB(LweSample* b, LweSample* c, string results_path){
 
@@ -464,12 +464,12 @@ void RegresionCuadratica::calcB(LweSample* b, LweSample* c, string results_path)
   multi = 2
   div = 1
 
-  t_suma = 6
-  t_multi = 93
-  t_div = 1386
+  t_suma = 8
+  t_multi = 1257
+  t_div = 11662
 
   t_total = t_div*div + t_multi*multi + t_suma*suma
-          = 1386 + 186 + 12 = 1584s = 26.4 minutos
+          = 14192s = 3.94 horas
 */
 void RegresionCuadratica::calcA(LweSample* a, LweSample* b, LweSample* c, string results_path){
 
