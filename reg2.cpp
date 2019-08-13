@@ -234,7 +234,7 @@ void RegresionCuadratica::calcCuadrados(string results_path){
   multiply_float(i2, i, i, float_bits, nb_bits, bk);
   multiply_float(j2, j, j, float_bits, nb_bits, bk);
   multiply_float(k2, k, k, float_bits, nb_bits, bk);
-  multiply_float(l2, k, k, float_bits, nb_bits, bk);
+  multiply_float(l2, l, l, float_bits, nb_bits, bk);
 
   saveResult(results_path + "/" + "i2", i2, nb_bits, bk->params);
   saveResult(results_path + "/" + "j2", j2, nb_bits, bk->params);
