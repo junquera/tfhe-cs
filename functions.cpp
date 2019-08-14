@@ -507,6 +507,36 @@ void u_shiftr(LweSample* result, const LweSample* a, const int posiciones, const
 
 void divide(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {
 
+  /*
+  def divide(dividendo, divisor):
+
+      cociente = [i for i in cero]
+      resto = [i for i in cero]
+
+      padding = int(bits/2)
+
+
+      divisor = shiftl(divisor, padding - 1)
+
+      for i in range(padding):
+          if debug:
+              print(i)
+              print(dividendo)
+              print(divisor)
+              print(cociente)
+              print(resto)
+              input()
+          gt = 1 if mayor_igual(dividendo, divisor) else 0
+          cociente[padding + i] = gt
+
+          resto = sub(dividendo, divisor) if gt else resto
+          dividendo = resto if gt else dividendo
+
+          divisor = shiftr(divisor, 1)
+
+      return cociente
+  */
+  
   LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   LweSample* aux2 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   LweSample* negatA = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
@@ -585,19 +615,14 @@ void divide(LweSample* result, const LweSample* a, const LweSample* b, const int
 
     // resto = gt? sub(dividendo, divisor) : resto
     resta(div_aux, dividendo, divisor, 2*nb_bits, bk);
+    // divisor = shiftr(divisor, 1)
+    u_shiftr(div_aux2, divisor, 1, 2*nb_bits, bk);
     for(int j = 0; j < 2*nb_bits; j++){
       bootsMUX(&resto[j], &gt[0], &div_aux[j], &dividendo[j], bk);
-    }
-
-    // dividendo = gt ? resto : dividendo
-    for(int j = 0; j < 2*nb_bits; j++){
+      // dividendo = gt ? resto : dividendo
       bootsMUX(&dividendo[j], &gt[0], &resto[j], &dividendo[j], bk);
+      bootsCOPY(&divisor[j], &div_aux2[j], bk);
     }
-
-    // divisor = shiftr(divisor, 1)
-    u_shiftr(div_aux, divisor, 1, 2*nb_bits, bk);
-    for(int j = 0; j < 2*nb_bits; j++)
-      bootsCOPY(&divisor[j], &div_aux[j], bk);
   }
 
   for(int i = 0; i < nb_bits; i++)
