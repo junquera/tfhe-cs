@@ -10,8 +10,6 @@
 #include <tfhe/tfhe.h>
 #include <tfhe/tfhe_io.h>
 
-#include "arithmetic.h"
-
 using namespace std;
 
 // TODO Pensar un buen sistema para poner el path

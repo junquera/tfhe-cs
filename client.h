@@ -2,8 +2,6 @@
 #define _CLIENT_H_INCLUDED_
 
 #include "common/hefile.h"
-#include "reg2.h"
-
 
 class HClient {
 	public:
