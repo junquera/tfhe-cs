@@ -1,4 +1,4 @@
-#include "aux.h"
+#include "common/hefile.h"
 #include "reg2.h"
 
 RegresionCuadratica::RegresionCuadratica(int _nb_bits, int _float_bits, TFheGateBootstrappingCloudKeySet* _bk) {
