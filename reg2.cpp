@@ -182,14 +182,14 @@ void RegresionCuadratica::initVectores(const vector<LweSample*> xs, const vector
     LweSample* x3 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
     LweSample* x4 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
 
-    multiply_float(x2, x, x, float_bits, nb_bits, bk);
-    multiply_float(x3, x2, x, float_bits, nb_bits, bk);
-    multiply_float(x4, x2, x2, float_bits, nb_bits, bk);
+    mult_float(x2, x, x, float_bits, nb_bits, bk);
+    mult_float(x3, x2, x, float_bits, nb_bits, bk);
+    mult_float(x4, x2, x2, float_bits, nb_bits, bk);
 
-    sum(aux1, i, x, nb_bits, bk);
-    sum(aux2, j, x2, nb_bits, bk);
-    sum(aux3, k, x3, nb_bits, bk);
-    sum(aux4, l, x4, nb_bits, bk);
+    add(aux1, i, x, nb_bits, bk);
+    add(aux2, j, x2, nb_bits, bk);
+    add(aux3, k, x3, nb_bits, bk);
+    add(aux4, l, x4, nb_bits, bk);
 
     for(int cj=0; cj < nb_bits; cj++){
       bootsCOPY(&i[cj], &aux1[cj], bk);
@@ -207,12 +207,12 @@ void RegresionCuadratica::initVectores(const vector<LweSample*> xs, const vector
     LweSample* xy = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
     LweSample* x2y = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
 
-    multiply_float(xy, x, y, float_bits, nb_bits, bk);
-    multiply_float(x2y, x2, y, float_bits, nb_bits, bk);
+    mult_float(xy, x, y, float_bits, nb_bits, bk);
+    mult_float(x2y, x2, y, float_bits, nb_bits, bk);
 
-    sum(aux1, u, y, nb_bits, bk);
-    sum(aux2, v, xy, nb_bits, bk);
-    sum(aux3, w, x2y, nb_bits, bk);
+    add(aux1, u, y, nb_bits, bk);
+    add(aux2, v, xy, nb_bits, bk);
+    add(aux3, w, x2y, nb_bits, bk);
 
     for(int cj=0; cj < nb_bits; cj++){
       bootsCOPY(&u[cj], &aux1[cj], bk);
@@ -257,10 +257,10 @@ void RegresionCuadratica::calcCuadrados(string results_path){
 
   if(exists_i2 & exists_j2 & exists_k2 & exists_l2) return;
 
-  multiply_float(i2, i, i, float_bits, nb_bits, bk);
-  multiply_float(j2, j, j, float_bits, nb_bits, bk);
-  multiply_float(k2, k, k, float_bits, nb_bits, bk);
-  multiply_float(l2, l, l, float_bits, nb_bits, bk);
+  mult_float(i2, i, i, float_bits, nb_bits, bk);
+  mult_float(j2, j, j, float_bits, nb_bits, bk);
+  mult_float(k2, k, k, float_bits, nb_bits, bk);
+  mult_float(l2, l, l, float_bits, nb_bits, bk);
 
   saveResult(results_path + "/" + "i2", i2, nb_bits, bk->params);
   saveResult(results_path + "/" + "j2", j2, nb_bits, bk->params);
@@ -291,15 +291,15 @@ void RegresionCuadratica::calcDuplas(string results_path){
     exists_kw & exists_kv & exists_ln &
     exists_ul & exists_vl & exists_wj) return;
 
-  multiply_float(il, i, l, float_bits, nb_bits, bk);
-  multiply_float(jk, j, k, float_bits, nb_bits, bk);
-  multiply_float(jl, j, l, float_bits, nb_bits, bk);
-  multiply_float(kw, k, w, float_bits, nb_bits, bk);
-  multiply_float(kv, k, v, float_bits, nb_bits, bk);
-  multiply_float(ln, l, n, float_bits, nb_bits, bk);
-  multiply_float(ul, u, l, float_bits, nb_bits, bk);
-  multiply_float(vl, v, l, float_bits, nb_bits, bk);
-  multiply_float(wj, w, j, float_bits, nb_bits, bk);
+  mult_float(il, i, l, float_bits, nb_bits, bk);
+  mult_float(jk, j, k, float_bits, nb_bits, bk);
+  mult_float(jl, j, l, float_bits, nb_bits, bk);
+  mult_float(kw, k, w, float_bits, nb_bits, bk);
+  mult_float(kv, k, v, float_bits, nb_bits, bk);
+  mult_float(ln, l, n, float_bits, nb_bits, bk);
+  mult_float(ul, u, l, float_bits, nb_bits, bk);
+  mult_float(vl, v, l, float_bits, nb_bits, bk);
+  mult_float(wj, w, j, float_bits, nb_bits, bk);
 
   saveResult(results_path + "/" + "il", il, nb_bits, bk->params);
   saveResult(results_path + "/" + "jk", jk, nb_bits, bk->params);
@@ -337,16 +337,16 @@ void RegresionCuadratica::calcComplejos(string results_path){
       exists_jk2w & exists_jklv & exists_j3l & exists_jl2n & exists_k2ln)
       return;
 
-  multiply_float(ijkl, il, jk, float_bits, nb_bits, bk);
-  multiply_float(i2l2, i2, l2, float_bits, nb_bits, bk);
-  multiply_float(iklw, il, kw, float_bits, nb_bits, bk);
-  multiply_float(il2v, il, vl, float_bits, nb_bits, bk);
-  multiply_float(j2k2, j2, k2, float_bits, nb_bits, bk);
-  multiply_float(jk2w, jk, kw, float_bits, nb_bits, bk);
-  multiply_float(jklv, jk, vl, float_bits, nb_bits, bk);
-  multiply_float(j3l, j2, jl, float_bits, nb_bits, bk);
-  multiply_float(jl2n, jl, ln, float_bits, nb_bits, bk);
-  multiply_float(k2ln, k2, ln, float_bits, nb_bits, bk);
+  mult_float(ijkl, il, jk, float_bits, nb_bits, bk);
+  mult_float(i2l2, i2, l2, float_bits, nb_bits, bk);
+  mult_float(iklw, il, kw, float_bits, nb_bits, bk);
+  mult_float(il2v, il, vl, float_bits, nb_bits, bk);
+  mult_float(j2k2, j2, k2, float_bits, nb_bits, bk);
+  mult_float(jk2w, jk, kw, float_bits, nb_bits, bk);
+  mult_float(jklv, jk, vl, float_bits, nb_bits, bk);
+  mult_float(j3l, j2, jl, float_bits, nb_bits, bk);
+  mult_float(jl2n, jl, ln, float_bits, nb_bits, bk);
+  mult_float(k2ln, k2, ln, float_bits, nb_bits, bk);
 
   saveResult(results_path + "/" + "ijkl", ijkl, nb_bits, bk->params);
   saveResult(results_path + "/" + "i2l2", i2l2, nb_bits, bk->params);
@@ -384,38 +384,38 @@ void RegresionCuadratica::calcC(LweSample* c, string results_path){
 
 
   // c = (ul - wj)/(ln - j2)
-  resta(aux1, ul, wj, nb_bits, bk);
-  resta(aux2, ln, j2, nb_bits, bk);
-  divide_float(c, aux1, aux2, float_bits, nb_bits, bk);
+  sub(aux1, ul, wj, nb_bits, bk);
+  sub(aux2, ln, j2, nb_bits, bk);
+  div_float(c, aux1, aux2, float_bits, nb_bits, bk);
 
   // c += (jklv - jk2w - il2v + iklw)/(jl2n - k2ln - j3l + j2k2)
-  resta(aux1, jklv, jk2w, nb_bits, bk);
-  resta(aux2, aux1, il2v, nb_bits, bk);
-  sum(aux1, aux2, iklw, nb_bits, bk);
+  sub(aux1, jklv, jk2w, nb_bits, bk);
+  sub(aux2, aux1, il2v, nb_bits, bk);
+  add(aux1, aux2, iklw, nb_bits, bk);
 
-  resta(aux2, jl2n, k2ln, nb_bits, bk);
-  resta(aux3, aux2, j3l, nb_bits, bk);
-  sum(aux2, aux3, j2k2, nb_bits, bk);
-  divide_float(aux3, aux1, aux2, float_bits, nb_bits, bk);
+  sub(aux2, jl2n, k2ln, nb_bits, bk);
+  sub(aux3, aux2, j3l, nb_bits, bk);
+  add(aux2, aux3, j2k2, nb_bits, bk);
+  div_float(aux3, aux1, aux2, float_bits, nb_bits, bk);
 
-  sum(aux1, c, aux3, nb_bits, bk);
+  add(aux1, c, aux3, nb_bits, bk);
   for(int ci=0; ci < nb_bits; ci++)
     bootsCOPY(&c[ci], &aux1[ci], bk);
 
   // r = (j2k2-2(ijkl)+i2l2)/(jl2n - k2ln - j3l + j2k2)
   LweSample* r = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
-  sum(aux1, ijkl, ijkl, nb_bits, bk);
-  resta(aux2, j2k2, aux1, nb_bits, bk);
-  sum(aux1, aux2, i2l2, nb_bits, bk);
+  add(aux1, ijkl, ijkl, nb_bits, bk);
+  sub(aux2, j2k2, aux1, nb_bits, bk);
+  add(aux1, aux2, i2l2, nb_bits, bk);
 
-  resta(aux2, jl2n, k2ln, nb_bits, bk);
-  resta(aux3, aux2, j3l, nb_bits, bk);
-  sum(aux2, aux3, j2k2, nb_bits, bk);
-  divide_float(r, aux1, aux2, float_bits, nb_bits, bk);
+  sub(aux2, jl2n, k2ln, nb_bits, bk);
+  sub(aux3, aux2, j3l, nb_bits, bk);
+  add(aux2, aux3, j2k2, nb_bits, bk);
+  div_float(r, aux1, aux2, float_bits, nb_bits, bk);
 
   // c = c / (1 - r)
-  resta(aux1, uno, r, nb_bits, bk);
-  divide_float(aux2, c, aux1, float_bits, nb_bits, bk);
+  sub(aux1, uno, r, nb_bits, bk);
+  div_float(aux2, c, aux1, float_bits, nb_bits, bk);
   for(int ci=0; ci < nb_bits; ci++)
     bootsCOPY(&c[ci], &aux2[ci], bk);
 
@@ -447,13 +447,13 @@ void RegresionCuadratica::calcB(LweSample* b, LweSample* c, string results_path)
   LweSample* cjk = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   LweSample* cil = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
 
-  multiply_float(cjk, c, jk, float_bits, nb_bits, bk);
-  multiply_float(cil, c, jk, float_bits, nb_bits, bk);
-  resta(aux1, cjk, cil, nb_bits, bk);
-  resta(aux2, vl, kw, nb_bits, bk);
-  sum(aux3, aux1, aux2, nb_bits, bk);
-  resta(aux1, jl, k2, nb_bits, bk);
-  divide_float(b, aux3, aux1, float_bits, nb_bits, bk);
+  mult_float(cjk, c, jk, float_bits, nb_bits, bk);
+  mult_float(cil, c, jk, float_bits, nb_bits, bk);
+  sub(aux1, cjk, cil, nb_bits, bk);
+  sub(aux2, vl, kw, nb_bits, bk);
+  add(aux3, aux1, aux2, nb_bits, bk);
+  sub(aux1, jl, k2, nb_bits, bk);
+  div_float(b, aux3, aux1, float_bits, nb_bits, bk);
 
   saveResult(results_path + "/" + "b", b, nb_bits, bk->params);
 
@@ -480,11 +480,11 @@ void RegresionCuadratica::calcA(LweSample* a, LweSample* b, LweSample* c, string
   if (exists_a)
       return;
 
-  multiply_float(aux1, b, k, float_bits, nb_bits, bk);
-  multiply_float(aux2, c, j, float_bits, nb_bits, bk);
-  sum(aux3, aux1, aux2, nb_bits, bk);
-  resta(aux1, w, aux3, nb_bits, bk);
-  divide_float(a, aux1, l, float_bits, nb_bits, bk);
+  mult_float(aux1, b, k, float_bits, nb_bits, bk);
+  mult_float(aux2, c, j, float_bits, nb_bits, bk);
+  add(aux3, aux1, aux2, nb_bits, bk);
+  sub(aux1, w, aux3, nb_bits, bk);
+  div_float(a, aux1, l, float_bits, nb_bits, bk);
 
   saveResult(results_path + "/" + "a", a, nb_bits, bk->params);
 
