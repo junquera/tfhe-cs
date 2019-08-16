@@ -8,21 +8,14 @@
 
 int main(){
 
-  TFheGateBootstrappingCloudKeySet* bk;
-	loadCloudKeyFromFile("cloud.key", bk);
-
-	TFheGateBootstrappingParameterSet* params;
-	//if necessary, the params are inside the key
-	params = (TFheGateBootstrappingParameterSet*) bk->params;
-
-
   int nb_bits = 64;
   int float_bits = 10;
   int values = 12;
 
 
-  string data_ub, data_name, res_dest;
-
+  string data_ub, data_name, res_dest, pub_path;
+  cout << "¿Dónde está la clave pública? > ";
+  cin >> pub_path;
   cout << "¿Dónde están los datos? > ";
   cin >> data_ub;
   cout << "¿Cómo se llaman (ciudad_A, ciudad_B...)? > ";
@@ -32,6 +25,13 @@ int main(){
   // if(mkdir(res_dest.c_str(), 0644) == 0){
   //   throw "Error creating folder!";
   // }
+
+  TFheGateBootstrappingCloudKeySet* bk;
+	loadCloudKeyFromFile(pub_path, bk);
+
+	TFheGateBootstrappingParameterSet* params;
+	//if necessary, the params are inside the key
+	params = (TFheGateBootstrappingParameterSet*) bk->params;
 
   vector<LweSample*> xs, ys;
   stringstream stringStream;
