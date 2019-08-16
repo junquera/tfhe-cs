@@ -9,13 +9,13 @@ all: test server client
 	echo "Ok!"
 
 test:
-	g++ main.cpp functions.cpp reg2.cpp functions.h reg2.h client.cpp client.h server.cpp server.h aux.cpp aux.h  -o test -ltfhe-fftw
+	g++ test.cpp common/arithmetic.cpp reg2.cpp common/arithmetic.h reg2.h client.cpp client.h server.cpp server.h common/hefile.cpp common/hefile.h  -o test -ltfhe-fftw
 
 server:
-	g++ server_main.cpp functions.cpp reg2.cpp functions.h reg2.h client.cpp client.h server.cpp server.h aux.cpp aux.h  -o server -ltfhe-fftw
+	g++ server_main.cpp common/arithmetic.cpp reg2.cpp common/arithmetic.h reg2.h client.cpp client.h server.cpp server.h common/hefile.cpp common/hefile.h  -o server -ltfhe-fftw
 
 client:
-	g++ client_main.cpp functions.cpp reg2.cpp functions.h reg2.h client.cpp client.h server.cpp server.h aux.cpp aux.h  -o client -ltfhe-fftw
+	g++ client_main.cpp common/arithmetic.cpp reg2.cpp common/arithmetic.h reg2.h client.cpp client.h server.cpp server.h common/hefile.cpp common/hefile.h  -o client -ltfhe-fftw
 
 clean:
-	rm main server client
+	rm test server client

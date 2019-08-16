@@ -1,5 +1,5 @@
-#ifndef _AUX_H_INCLUDED_
-#define _AUX_H_INCLUDED_
+#ifndef _HEFILE_H_INCLUDED_
+#define _HEFILE_H_INCLUDED_
 
 #include <string>
 #include <iostream>
@@ -10,7 +10,7 @@
 #include <tfhe/tfhe.h>
 #include <tfhe/tfhe_io.h>
 
-#include "functions.h"
+#include "arithmetic.h"
 
 using namespace std;
 

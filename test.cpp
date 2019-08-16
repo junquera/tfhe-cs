@@ -2,7 +2,7 @@
 #include <tfhe/tfhe.h>
 #include <tfhe/tfhe_io.h>
 #include <ctime>
-#include "functions.h"
+#include "common/arithmetic.h"
 #include "reg2.h"
 
 using namespace std;

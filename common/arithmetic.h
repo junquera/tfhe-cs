@@ -1,5 +1,5 @@
-#ifndef _FUNCTIONS_H_INCLUDED_
-#define _FUNCTIONS_H_INCLUDED_
+#ifndef _ARITMETIC_H_INCLUDED_
+#define _ARITMETIC_H_INCLUDED_
 
 #include <iostream>
 #include <tfhe/tfhe.h>

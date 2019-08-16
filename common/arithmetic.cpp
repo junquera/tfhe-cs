@@ -1,5 +1,5 @@
-#include "functions.h"
-#include "aux.h"
+#include "arithmetic.h"
+
 using namespace std;
 
 // TODO Escribir operaciones sin signo u_multiply...
@@ -536,7 +536,7 @@ void divide(LweSample* result, const LweSample* a, const LweSample* b, const int
 
       return cociente
   */
-  
+
   LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   LweSample* aux2 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   LweSample* negatA = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
