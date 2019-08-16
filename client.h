@@ -1,7 +1,7 @@
 #ifndef _CLIENT_H_INCLUDED_
 #define _CLIENT_H_INCLUDED_
 
-#include "aux.h"
+#include "common/hefile.h"
 #include "reg2.h"
 
 
