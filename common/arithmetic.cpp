@@ -1,7 +1,5 @@
 #include "arithmetic.h"
 
-using namespace std;
-
 // TODO Escribir operaciones sin signo u_multiply...
 // TODO Estandarizar nombres
 // elementary full comparator gate that is used to compare the i-th bit:
@@ -9,8 +7,8 @@ using namespace std;
 //          lsb_carry: the result of the comparison on the lowest bits
 //   algo: if (a==b) return lsb_carry else return b
 void compare_bit(LweSample* result, const LweSample* a, const LweSample* b, const LweSample* lsb_carry, LweSample* tmp, const TFheGateBootstrappingCloudKeySet* bk) {
-    bootsXNOR(tmp, a, b, bk);
-    bootsMUX(result, tmp, lsb_carry, a, bk);
+  bootsXNOR(tmp, a, b, bk);
+  bootsMUX(result, tmp, lsb_carry, a, bk);
 }
 
 void is_negative(LweSample* result, const LweSample* a, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
@@ -33,7 +31,7 @@ void negativo(LweSample* result, const LweSample* a, const int nb_bits, const TF
   // b negativo
   for(int i = 0; i < nb_bits; i++)
     bootsNOT(&restando[i], &a[i], bk);
-  sum(aux, restando, uno, nb_bits, bk);
+  add(aux, restando, uno, nb_bits, bk);
 
   for(int i=0; i < nb_bits; i++){
     bootsCOPY(&result[i], &aux[i], bk);
@@ -62,52 +60,52 @@ void equal(LweSample* result, const LweSample* a, const LweSample* b, const int 
 
 // this function compares two multibit words, and puts the min in result
 void minimum(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {
-    LweSample* tmps = new_gate_bootstrapping_ciphertext_array(2, bk->params);
-    LweSample* aGreater = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+  LweSample* tmps = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+  LweSample* aGreater = new_gate_bootstrapping_ciphertext_array(2, bk->params);
 
-    LweSample* minimumMismoSigno = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
-    LweSample* minimumOneNegative = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
-    LweSample* oneNegative = new_gate_bootstrapping_ciphertext_array(2, bk->params);
-    LweSample* negativoA = new_gate_bootstrapping_ciphertext_array(2, bk->params);
-    LweSample* negativoB = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+  LweSample* minimumMismoSigno = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  LweSample* minimumOneNegative = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  LweSample* oneNegative = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+  LweSample* negativoA = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+  LweSample* negativoB = new_gate_bootstrapping_ciphertext_array(2, bk->params);
 
-    is_negative(negativoA, a, nb_bits, bk);
-    is_negative(negativoB, b, nb_bits, bk);
+  is_negative(negativoA, a, nb_bits, bk);
+  is_negative(negativoB, b, nb_bits, bk);
 
-    bootsXOR(&oneNegative[0], &negativoA[0], &negativoB[0], bk);
+  bootsXOR(&oneNegative[0], &negativoA[0], &negativoB[0], bk);
 
-    // a > b = soloOneNegative & is_negative(b)
-    bootsAND(&aGreater[0], &oneNegative[0], &negativoB[0], bk);
-    for(int i = 0; i < nb_bits; i++){
-      bootsMUX(&minimumOneNegative[i], &aGreater[0], &b[i], &a[i], bk);
-    }
+  // a > b = soloOneNegative & is_negative(b)
+  bootsAND(&aGreater[0], &oneNegative[0], &negativoB[0], bk);
+  for(int i = 0; i < nb_bits; i++){
+    bootsMUX(&minimumOneNegative[i], &aGreater[0], &b[i], &a[i], bk);
+  }
 
-    //initialize the carry to 0
-    bootsCONSTANT(&tmps[0], 0, bk);
+  //initialize the carry to 0
+  bootsCONSTANT(&tmps[0], 0, bk);
 
-    //run the elementary comparator gate n times
-    for (int i=0; i<nb_bits; i++) {
-        compare_bit(&tmps[0], &a[i], &b[i], &tmps[0], &tmps[1], bk);
-    }
+  //run the elementary comparator gate n times
+  for (int i=0; i<nb_bits; i++) {
+      compare_bit(&tmps[0], &a[i], &b[i], &tmps[0], &tmps[1], bk);
+  }
 
-    //tmps[0] is the result of the comparaison: 0 if a is larger, 1 if b is larger
-    //select the max and copy it to the result
-    for (int i=0; i<nb_bits; i++) {
-        bootsMUX(&minimumMismoSigno[i], &tmps[0], &b[i], &a[i], bk);
-    }
+  //tmps[0] is the result of the comparaison: 0 if a is larger, 1 if b is larger
+  //select the max and copy it to the result
+  for (int i=0; i<nb_bits; i++) {
+      bootsMUX(&minimumMismoSigno[i], &tmps[0], &b[i], &a[i], bk);
+  }
 
-    // Resultado en funcion de si comparamos entre mismo signo o no
-    for (int i=0; i<nb_bits; i++) {
-        bootsMUX(&result[i], &oneNegative[0], &minimumOneNegative[i], &minimumMismoSigno[i], bk);
-    }
+  // Resultado en funcion de si comparamos entre mismo signo o no
+  for (int i=0; i<nb_bits; i++) {
+      bootsMUX(&result[i], &oneNegative[0], &minimumOneNegative[i], &minimumMismoSigno[i], bk);
+  }
 
-    delete_gate_bootstrapping_ciphertext_array(2, tmps);
-    delete_gate_bootstrapping_ciphertext_array(2, aGreater);
-    delete_gate_bootstrapping_ciphertext_array(nb_bits, minimumMismoSigno);
-    delete_gate_bootstrapping_ciphertext_array(nb_bits, minimumOneNegative);
-    delete_gate_bootstrapping_ciphertext_array(2, oneNegative);
-    delete_gate_bootstrapping_ciphertext_array(2, negativoA);
-    delete_gate_bootstrapping_ciphertext_array(2, negativoB);
+  delete_gate_bootstrapping_ciphertext_array(2, tmps);
+  delete_gate_bootstrapping_ciphertext_array(2, aGreater);
+  delete_gate_bootstrapping_ciphertext_array(nb_bits, minimumMismoSigno);
+  delete_gate_bootstrapping_ciphertext_array(nb_bits, minimumOneNegative);
+  delete_gate_bootstrapping_ciphertext_array(2, oneNegative);
+  delete_gate_bootstrapping_ciphertext_array(2, negativoA);
+  delete_gate_bootstrapping_ciphertext_array(2, negativoB);
 }
 
 // this function compares two multibit words, and puts the min in result
@@ -185,7 +183,7 @@ void add_bit(LweSample* result, LweSample* carry_out, const LweSample* a, const 
 
 }
 
-void sum(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {
+void add(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {
   LweSample* tmps_carry = new_gate_bootstrapping_ciphertext_array(2, bk->params);
 
   //initialize the carry to 0
@@ -200,17 +198,17 @@ void sum(LweSample* result, const LweSample* a, const LweSample* b, const int nb
 
 }
 
-void resta(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
+void sub(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
   LweSample* restando = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
 
   negativo(restando, b, nb_bits, bk);
-  sum(result, a, restando, nb_bits, bk);
+  add(result, a, restando, nb_bits, bk);
 
   delete_gate_bootstrapping_ciphertext_array(nb_bits, restando);
 }
 
 // TODO Nueva multiplicación
-void old_multiply(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {
+void old_mult(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {
   LweSample* tmps = new_gate_bootstrapping_ciphertext_array(2, bk->params);
   LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   LweSample* aux2 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
@@ -246,12 +244,12 @@ void old_multiply(LweSample* result, const LweSample* a, const LweSample* b, con
     }
 
 
-    sum(aux2, aux, sumando, nb_bits, bk);
+    add(aux2, aux, sumando, nb_bits, bk);
     for(int j = 0; j < nb_bits; j++){
       bootsCOPY(&aux[j], &aux2[j], bk);
     }
 
-    sum(res_aux, result, factor, nb_bits, bk);
+    add(res_aux, result, factor, nb_bits, bk);
     for(int j = 0; j < nb_bits; j++){
       bootsCOPY(&result[j], &res_aux[j], bk);
     }
@@ -267,7 +265,41 @@ void old_multiply(LweSample* result, const LweSample* a, const LweSample* b, con
   delete_gate_bootstrapping_ciphertext_array(nb_bits, res_aux);
 }
 
-void multiply(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {
+void u_mult(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {
+
+  LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  LweSample* aux2 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+
+  for(int i = 0; i < nb_bits; i++){
+    bootsCONSTANT(&aux[i], 0, bk);
+    bootsCONSTANT(&aux2[i], 0, bk);
+  }
+
+  // Multiplica opA * opB
+  for(int i = 0; i < (nb_bits/2); i++) {
+
+    // Resetea auxs
+    for(int j = 0; j < nb_bits; j++){
+      bootsCONSTANT(&aux[j], 0, bk);
+      bootsCONSTANT(&aux2[j], 0, bk);
+    }
+    for(int j = 0; j < (nb_bits/2) + 1; j++)
+      bootsAND(&aux[j+i] , &a[i], &b[j], bk);
+
+    add(aux2, aux, result, nb_bits, bk);
+
+    for(int j = 0; j < nb_bits; j++) {
+      bootsCOPY(&result[j], &aux2[j], bk);
+    }
+
+  }
+
+  delete_gate_bootstrapping_ciphertext_array(nb_bits, aux);
+  delete_gate_bootstrapping_ciphertext_array(nb_bits, aux2);
+
+}
+
+void mult(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {
 
   LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   LweSample* aux2 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
@@ -317,24 +349,7 @@ void multiply(LweSample* result, const LweSample* a, const LweSample* b, const i
   bootsXOR(corrige, isNegativeA, isNegativeB, bk);
   // END LOGICA_SIGNO
 
-  // Multiplica opA * opB
-  for(int i = 0; i < (nb_bits/2); i++) {
-
-    // Resetea auxs
-    for(int j = 0; j < nb_bits; j++){
-      bootsCONSTANT(&aux[j], 0, bk);
-      bootsCONSTANT(&aux2[j], 0, bk);
-    }
-    for(int j = 0; j < (nb_bits/2) + 1; j++)
-      bootsAND(&aux[j+i] , &opA[i], &opB[j], bk);
-
-    sum(aux2, aux, result, nb_bits, bk);
-
-    for(int j = 0; j < nb_bits; j++) {
-      bootsCOPY(&result[j], &aux2[j], bk);
-    }
-
-  }
+  u_mult(result, opA, opB, nb_bits, bk);
 
   // BEGIN LOGICA_SIGNO
   // Determinamos si devolver el resultado positivo o negativo
@@ -360,7 +375,7 @@ void multiply(LweSample* result, const LweSample* a, const LweSample* b, const i
  0 si a >= b
  ¡No tiene en cuenta el signo!
 */
-void mayor_igual(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
+void gte(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
   LweSample* eq = new_gate_bootstrapping_ciphertext_array(2, bk->params);
 
   bootsCONSTANT(&result[0], 0, bk);
@@ -505,10 +520,9 @@ void u_shiftr(LweSample* result, const LweSample* a, const int posiciones, const
 
 }
 
-void divide(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {
-
+void u_div(LweSample* cociente, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {
   /*
-  def divide(dividendo, divisor):
+  def div(dividendo, divisor):
 
       cociente = [i for i in cero]
       resto = [i for i in cero]
@@ -526,7 +540,7 @@ void divide(LweSample* result, const LweSample* a, const LweSample* b, const int
               print(cociente)
               print(resto)
               input()
-          gt = 1 if mayor_igual(dividendo, divisor) else 0
+          gt = 1 if gte(dividendo, divisor) else 0
           cociente[padding + i] = gt
 
           resto = sub(dividendo, divisor) if gt else resto
@@ -536,6 +550,55 @@ void divide(LweSample* result, const LweSample* a, const LweSample* b, const int
 
       return cociente
   */
+  LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  LweSample* aux2 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+
+  LweSample* gt = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+
+  LweSample* div_aux = new_gate_bootstrapping_ciphertext_array(2*nb_bits, bk->params);
+  LweSample* div_aux2 = new_gate_bootstrapping_ciphertext_array(2*nb_bits, bk->params);
+  LweSample* dividendo = new_gate_bootstrapping_ciphertext_array(2*nb_bits, bk->params);
+  LweSample* divisor = new_gate_bootstrapping_ciphertext_array(2*nb_bits, bk->params);
+  LweSample* resto = new_gate_bootstrapping_ciphertext_array(2*nb_bits, bk->params);
+
+  reescala(dividendo, a, 2*nb_bits, nb_bits, bk);
+
+  reescala(div_aux, b, 2*nb_bits, nb_bits, bk);
+
+  u_shiftl(divisor, div_aux, nb_bits - 1, 2*nb_bits, bk);
+
+
+
+  for(int i = 0; i < nb_bits; i++) {
+    // gt = dividendo >= divisor
+    gte(gt, dividendo, divisor, 2*nb_bits, bk);
+
+    bootsCOPY(&cociente[nb_bits-i-1], &gt[0], bk);
+
+    // resto = gt? sub(dividendo, divisor) : resto
+    sub(div_aux, dividendo, divisor, 2*nb_bits, bk);
+    // divisor = shiftr(divisor, 1)
+    u_shiftr(div_aux2, divisor, 1, 2*nb_bits, bk);
+    for(int j = 0; j < 2*nb_bits; j++){
+      bootsMUX(&resto[j], &gt[0], &div_aux[j], &dividendo[j], bk);
+      // dividendo = gt ? resto : dividendo
+      bootsMUX(&dividendo[j], &gt[0], &resto[j], &dividendo[j], bk);
+      bootsCOPY(&divisor[j], &div_aux2[j], bk);
+    }
+  }
+
+  delete_gate_bootstrapping_ciphertext_array(nb_bits, aux);
+  delete_gate_bootstrapping_ciphertext_array(nb_bits, aux2);
+  delete_gate_bootstrapping_ciphertext_array(2, gt);
+  delete_gate_bootstrapping_ciphertext_array(2, div_aux);
+  delete_gate_bootstrapping_ciphertext_array(2, div_aux2);
+  delete_gate_bootstrapping_ciphertext_array(2, dividendo);
+  delete_gate_bootstrapping_ciphertext_array(2, divisor);
+  delete_gate_bootstrapping_ciphertext_array(2, resto);
+
+}
+
+void div(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {
 
   LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   LweSample* aux2 = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
@@ -594,39 +657,9 @@ void divide(LweSample* result, const LweSample* a, const LweSample* b, const int
   is_negative(isNegativeA, a, nb_bits, bk);
   is_negative(isNegativeB, b, nb_bits, bk);
   bootsXOR(corrige, isNegativeA, isNegativeB, bk);
-
-  for(int i = 0; i < nb_bits; i++){
-    bootsCOPY(&dividendo[i], &opA[i], bk);
-    bootsCOPY(&divisor[i], &opB[i], bk);
-  }
   // END LOGICA_SIGNO
 
-  u_shiftl(div_aux, divisor, nb_bits - 1, 2*nb_bits, bk);
-  for(int i = 0; i < 2*nb_bits; i++){
-    bootsCOPY(&divisor[i], &div_aux[i], bk);
-  }
-
-
-  for(int i = 0; i < nb_bits; i++) {
-    // gt = dividendo >= divisor
-    mayor_igual(gt, dividendo, divisor, 2*nb_bits, bk);
-
-    bootsCOPY(&cociente[nb_bits-i-1], &gt[0], bk);
-
-    // resto = gt? sub(dividendo, divisor) : resto
-    resta(div_aux, dividendo, divisor, 2*nb_bits, bk);
-    // divisor = shiftr(divisor, 1)
-    u_shiftr(div_aux2, divisor, 1, 2*nb_bits, bk);
-    for(int j = 0; j < 2*nb_bits; j++){
-      bootsMUX(&resto[j], &gt[0], &div_aux[j], &dividendo[j], bk);
-      // dividendo = gt ? resto : dividendo
-      bootsMUX(&dividendo[j], &gt[0], &resto[j], &dividendo[j], bk);
-      bootsCOPY(&divisor[j], &div_aux2[j], bk);
-    }
-  }
-
-  for(int i = 0; i < nb_bits; i++)
-    bootsCOPY(&result[i], &cociente[i], bk);
+  u_div(result, opA, opB, nb_bits, bk);
 
   // BEGIN LOGICA_SIGNO
   // Determinamos si devolver el resultado positivo o negativo
@@ -656,7 +689,7 @@ void porDiez(LweSample* result, const LweSample* a, const int nb_bits, const TFh
 
   shiftl(auxA, n, 3, nb_bits, bk);
   shiftl(auxB, n, 1, nb_bits, bk);
-  sum(n, auxA, auxB, nb_bits, bk);
+  add(n, auxA, auxB, nb_bits, bk);
 
   negativo(auxA, n, nb_bits, bk);
   for(int i = 0; i < nb_bits; i++)
@@ -677,7 +710,7 @@ void reescala(LweSample* result, const LweSample* a, const int nb_bits_result, c
 }
 
 // En funciones _flouat los datos intermedios ocupan el doble...
-void multiply_float(LweSample* result, const LweSample* a, const LweSample* b, const int float_bits, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
+void mult_float(LweSample* result, const LweSample* a, const LweSample* b, const int float_bits, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
   LweSample* aux = new_gate_bootstrapping_ciphertext_array(2*nb_bits, bk->params);
   LweSample* res_aux = new_gate_bootstrapping_ciphertext_array(2*nb_bits, bk->params);
   LweSample* aux_a = new_gate_bootstrapping_ciphertext_array(2*nb_bits, bk->params);
@@ -686,7 +719,7 @@ void multiply_float(LweSample* result, const LweSample* a, const LweSample* b, c
   reescala(aux_a, a, 2*nb_bits, nb_bits, bk);
   reescala(aux_b, b, 2*nb_bits, nb_bits, bk);
 
-  multiply(aux, aux_a, aux_b, 2*nb_bits, bk);
+  mult(aux, aux_a, aux_b, 2*nb_bits, bk);
 
   shiftr(res_aux, aux, float_bits, 2*nb_bits, bk); // Proteger los decimales
 
@@ -694,7 +727,7 @@ void multiply_float(LweSample* result, const LweSample* a, const LweSample* b, c
 
 }
 
-void divide_float(LweSample* result, const LweSample* a, const LweSample* b, const int float_bits, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
+void div_float(LweSample* result, const LweSample* a, const LweSample* b, const int float_bits, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk){
   LweSample* aux = new_gate_bootstrapping_ciphertext_array(2*nb_bits, bk->params);
   LweSample* aux_a = new_gate_bootstrapping_ciphertext_array(2*nb_bits, bk->params);
   LweSample* aux_b = new_gate_bootstrapping_ciphertext_array(2*nb_bits, bk->params);
@@ -705,7 +738,7 @@ void divide_float(LweSample* result, const LweSample* a, const LweSample* b, con
 
   reescala(aux_b, b, 2*nb_bits, nb_bits, bk);
 
-  divide(aux_res, aux_a, aux_b, 2*nb_bits, bk);
+  div(aux_res, aux_a, aux_b, 2*nb_bits, bk);
   reescala(result, aux_res, nb_bits, 2*nb_bits, bk);
 }
 
@@ -728,23 +761,23 @@ void entreDiez(LweSample* result, const LweSample* a, const int nb_bits, const T
   //  q = (n >> 1) + (n >> 2)
   shiftr(aux, n, 1, nb_bits, bk);
   shiftr(aux2, n, 2, nb_bits, bk);
-  sum(q, aux, aux2, nb_bits, bk);
+  add(q, aux, aux2, nb_bits, bk);
 
   // q = q + (q >> 4)
   shiftr(aux, q, 4, nb_bits, bk);
-  sum(aux2, aux, q, nb_bits, bk);
+  add(aux2, aux, q, nb_bits, bk);
   for(int i=0; i < nb_bits; i++)
     bootsCOPY(&q[i], &aux2[i], bk);
 
   // q = q + (q >> 8)
   shiftr(aux, q, 8, nb_bits, bk);
-  sum(aux2, aux, q, nb_bits, bk);
+  add(aux2, aux, q, nb_bits, bk);
   for(int i=0; i < nb_bits; i++)
     bootsCOPY(&q[i], &aux2[i], bk);
 
   // q = q + (q >> 16)
   shiftr(aux, q, 16, nb_bits, bk);
-  sum(aux2, aux, q, nb_bits, bk);
+  add(aux2, aux, q, nb_bits, bk);
   for(int i=0; i < nb_bits; i++)
     bootsCOPY(&q[i], &aux2[i], bk);
 
@@ -758,15 +791,15 @@ void entreDiez(LweSample* result, const LweSample* a, const int nb_bits, const T
 
   // r = n - (((q << 2) + q) << 1)
   shiftl(aux, q, 2, nb_bits, bk);
-  sum(aux2, aux, q, nb_bits, bk);
+  add(aux2, aux, q, nb_bits, bk);
   shiftl(aux, aux2, 1, nb_bits, bk);
-  resta(aux2, n, aux, nb_bits, bk);
+  sub(aux2, n, aux, nb_bits, bk);
 
   // result = q + (r >> 9)
   shiftr(aux, q, 9, nb_bits, bk);
 
 
-  sum(aux2, q, aux, nb_bits, bk);
+  add(aux2, q, aux, nb_bits, bk);
 
   negativo(aux, aux2, nb_bits, bk);
   for(int i = 0; i < nb_bits; i++)
@@ -793,7 +826,7 @@ void h_pow(LweSample* result, const LweSample* a, const int n, const int nb_bits
     bootsCONSTANT(&result[0], 1, bk);
 
   for(int i = 0; i < n-1; i++){
-    multiply(aux, result, a, nb_bits, bk);
+    mult(aux, result, a, nb_bits, bk);
     for(int j = 0; j < nb_bits; j++)
       bootsCOPY(&result[j], &aux[j], bk);
   }

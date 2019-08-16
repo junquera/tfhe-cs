@@ -4,6 +4,7 @@
 #include <ctime>
 #include "common/arithmetic.h"
 #include "reg2.h"
+#include "client.h"
 
 using namespace std;
 
@@ -12,7 +13,7 @@ void test(){
 	const int minimum_lambda = 110;
 
   // Número de bits con los que queremos trabajar
-  const int nb_bits = 64;
+  const int nb_bits = 20;
 
 	TFheGateBootstrappingParameterSet* params = new_default_gate_bootstrapping_parameters(minimum_lambda);
    //generate a random key
@@ -30,9 +31,9 @@ void test(){
     export_tfheGateBootstrappingCloudKeySet_toFile(cloud_key, &key->cloud);
     fclose(cloud_key);
 
-		int float_bits = 10; // Con 7 bits tengo 2 decimales
-		float a1 = 60710;
-		float a2 = 60710;
+		int float_bits = 4; // Con 7 bits tengo 2 decimales
+		float a1 = 92;
+		float a2 = 6.41;
 
     //generate encrypt the 16 bits of 2017
    int64_t plaintext1 = float2hint(a1, float_bits);
@@ -93,15 +94,15 @@ void test(){
   time_t t0 = time(NULL);
    // minimum(result, ciphertext1, ciphertext2, nb_bits, bk);
    // maximum  (result, ciphertext1, ciphertext2, nb_bits, bk);
-   // sum(result, ciphertext1, ciphertext1, nb_bits, bk);
-   // resta(result, ciphertext1, ciphertext2, 16, bk);
-	 // multiply(result, ciphertext1, ciphertext2, nb_bits, bk);
+   // add(result, ciphertext1, ciphertext1, nb_bits, bk);
+   // sub(result, ciphertext1, ciphertext2, 16, bk);
+	 // mult(result, ciphertext1, ciphertext2, nb_bits, bk);
 	 // u_shiftr(result, ciphertext1, 1, nb_bits, bk);
-	 // divide_float(result, ciphertext1, ciphertext2, float_bits, nb_bits, bk);
-   multiply_float(result, ciphertext1, ciphertext1, float_bits, nb_bits, bk);
+	 div_float(result, ciphertext1, ciphertext2, float_bits, nb_bits, bk);
+   // mult_float(result, ciphertext1, ciphertext1, float_bits, nb_bits, bk);
    // pow(result, ciphertext2, 2, nb_bits, bk);
-   // divide(result, ciphertext1, ciphertext2, nb_bits, bk);
-   // mayor_igual(result, ciphertext1, ciphertext2, nb_bits, bk);
+   // div(result, ciphertext1, ciphertext2, nb_bits, bk);
+   // gte(result, ciphertext1, ciphertext2, nb_bits, bk);
   // is_negative(result, ciphertext1, nb_bits, bk);
 	// for(int i=0; i < nb_bits; i++){
 	// 	bootsCOPY(&result[i], &ciphertext1[i], bk);
@@ -272,7 +273,7 @@ void test_times(){
     cout << "maximum," << nb_bits << "," << t - t0 << endl;
 
     t0 = time(NULL);
-    sum(result, ciphertext1, ciphertext2, nb_bits, bk);
+    add(result, ciphertext1, ciphertext2, nb_bits, bk);
     t = time(NULL);
     cout << "sum," << nb_bits << "," << t - t0 << endl;
 
@@ -282,22 +283,22 @@ void test_times(){
     cout << "negativo," << nb_bits << "," << t - t0 << endl;
 
     t0 = time(NULL);
-    resta(result, ciphertext1, ciphertext2, nb_bits, bk);
+    sub(result, ciphertext1, ciphertext2, nb_bits, bk);
     t = time(NULL);
     cout << "resta," << nb_bits << "," << t - t0 << endl;
 
     t0 = time(NULL);
-    multiply(result, ciphertext1, ciphertext2, nb_bits, bk);
+    mult(result, ciphertext1, ciphertext2, nb_bits, bk);
     t = time(NULL);
     cout << "multiply," << nb_bits << "," << t - t0 << endl;
 
     t0 = time(NULL);
-    multiply_float(result, ciphertext1, ciphertext2, float_bits, nb_bits, bk);
+    mult_float(result, ciphertext1, ciphertext2, float_bits, nb_bits, bk);
     t = time(NULL);
     cout << "multiply_float," << nb_bits << "," << t - t0 << endl;
 
     t0 = time(NULL);
-    mayor_igual(result, ciphertext1, ciphertext2, nb_bits, bk);
+    gte(result, ciphertext1, ciphertext2, nb_bits, bk);
     t = time(NULL);
     cout << "mayor_igual," << nb_bits << "," << t - t0 << endl;
 
@@ -343,12 +344,12 @@ void test_times(){
 
 		// Tardan más o menos igual...
     t0 = time(NULL);
-    divide(result, ciphertext1, ciphertext2, nb_bits, bk);
+    div(result, ciphertext1, ciphertext2, nb_bits, bk);
     t = time(NULL);
     cout << "divide," << nb_bits << "," << t - t0 << endl;
 
     t0 = time(NULL);
-    divide_float(result, ciphertext1, ciphertext2, float_bits, nb_bits, bk);
+    div_float(result, ciphertext1, ciphertext2, float_bits, nb_bits, bk);
     t = time(NULL);
 		cout << "divide_float," << nb_bits << "," << t - t0 << endl;
 
@@ -356,7 +357,6 @@ void test_times(){
 }
 
 int main(){
-	// regresion();
 	// test_times();
 	test();
 	return 0;
