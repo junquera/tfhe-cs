@@ -1,7 +1,7 @@
 #ifndef _SERVER_H_INCLUDED_
 #define _SERVER_H_INCLUDED_
 
-#include "aux.h"
+#include "common/hefile.h"
 #include "reg2.h"
 
 class HServer {

@@ -7,7 +7,7 @@
 #include <tfhe/tfhe.h>
 #include <tfhe/tfhe_io.h>
 
-#include "functions.h"
+#include "common/arithmetic.h"
 using namespace std;
 
 class RegresionCuadratica {
