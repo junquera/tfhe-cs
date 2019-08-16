@@ -1,7 +1,5 @@
 #include "arithmetic.h"
 
-// TODO Escribir operaciones sin signo u_multiply...
-// TODO Estandarizar nombres
 // elementary full comparator gate that is used to compare the i-th bit:
 //   input: ai and bi the i-th bit of a and b
 //          lsb_carry: the result of the comparison on the lowest bits
