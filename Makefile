@@ -9,7 +9,7 @@ all: test server client
 	echo "Ok!"
 
 arithmetic.o:
-	g++ -c tfhe-math/arithmetic.cpp -o arithmetic.o
+	g++ -Wall -c tfhe-math/arithmetic.cpp -o arithmetic.o
 
 lib:
 	mkdir -p lib
@@ -18,13 +18,13 @@ libtfhe-math.a: lib arithmetic.o
 	ar crf lib/libtfhe-math.a arithmetic.o
 
 test: libtfhe-math.a
-	g++ test.cpp reg2.cpp reg2.h client.cpp client.h server.cpp server.h common/hefile.cpp common/hefile.h -Llib  -o test -ltfhe-fftw -ltfhe-math
+	g++ -Wall test.cpp reg2.cpp reg2.h client.cpp client.h server.cpp server.h common/hefile.cpp common/hefile.h -Llib  -o test -ltfhe-fftw -ltfhe-math
 
 server: libtfhe-math.a
-	g++ server_main.cpp reg2.cpp reg2.h client.cpp client.h server.cpp server.h common/hefile.cpp common/hefile.h -Llib  -o server -ltfhe-fftw -ltfhe-math
+	g++ -Wall server_main.cpp reg2.cpp reg2.h client.cpp client.h server.cpp server.h common/hefile.cpp common/hefile.h -Llib  -o server -ltfhe-fftw -ltfhe-math
 
 client: libtfhe-math.a
-	g++ client_main.cpp reg2.cpp reg2.h client.cpp client.h server.cpp server.h common/hefile.cpp common/hefile.h -Llib -o client -ltfhe-fftw -ltfhe-math
+	g++ -Wall client_main.cpp reg2.cpp reg2.h client.cpp client.h server.cpp server.h common/hefile.cpp common/hefile.h -Llib -o client -ltfhe-fftw -ltfhe-math
 
 clean:
 	rm -rf test server client *.o lib
