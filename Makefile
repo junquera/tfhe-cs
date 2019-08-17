@@ -8,14 +8,23 @@ LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$TFHE_PREFIX/lib
 all: test server client
 	echo "Ok!"
 
-test:
-	g++ test.cpp common/arithmetic.cpp reg2.cpp common/arithmetic.h reg2.h client.cpp client.h server.cpp server.h common/hefile.cpp common/hefile.h  -o test -ltfhe-fftw
+arithmetic.o:
+	g++ -c tfhe-math/arithmetic.cpp -o arithmetic.o
 
-server:
-	g++ server_main.cpp common/arithmetic.cpp reg2.cpp common/arithmetic.h reg2.h client.cpp client.h server.cpp server.h common/hefile.cpp common/hefile.h  -o server -ltfhe-fftw
+lib:
+	mkdir -p lib
 
-client:
-	g++ client_main.cpp common/arithmetic.cpp reg2.cpp common/arithmetic.h reg2.h client.cpp client.h server.cpp server.h common/hefile.cpp common/hefile.h  -o client -ltfhe-fftw
+libtfhe-math.a: lib arithmetic.o
+	ar crf lib/libtfhe-math.a arithmetic.o
+
+test: libtfhe-math.a
+	g++ test.cpp reg2.cpp reg2.h client.cpp client.h server.cpp server.h common/hefile.cpp common/hefile.h -Llib  -o test -ltfhe-fftw -ltfhe-math
+
+server: libtfhe-math.a
+	g++ server_main.cpp reg2.cpp reg2.h client.cpp client.h server.cpp server.h common/hefile.cpp common/hefile.h -Llib  -o server -ltfhe-fftw -ltfhe-math
+
+client: libtfhe-math.a
+	g++ client_main.cpp reg2.cpp reg2.h client.cpp client.h server.cpp server.h common/hefile.cpp common/hefile.h -Llib -o client -ltfhe-fftw -ltfhe-math
 
 clean:
-	rm test server client
+	rm -rf test server client *.o lib

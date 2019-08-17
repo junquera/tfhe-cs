@@ -2,7 +2,7 @@
 #include <tfhe/tfhe.h>
 #include <tfhe/tfhe_io.h>
 #include <ctime>
-#include "common/arithmetic.h"
+#include "tfhe-math/arithmetic.h"
 #include "reg2.h"
 #include "client.h"
 
