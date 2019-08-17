@@ -639,8 +639,6 @@ void div(LweSample* result, const LweSample* a, const LweSample* b, const int nb
     bootsCONSTANT(&bit[i], 0, bk);
   }
 
-  int padding = nb_bits/2;
-
   // BEGIN LOGICA_SIGNO
   negativo(negatA, a, nb_bits, bk);
   negativo(negatB, b, nb_bits, bk);
@@ -696,7 +694,6 @@ void porDiez(LweSample* result, const LweSample* a, const int nb_bits, const TFh
 
 // Reescalar de nb_bits a nb_bits_result
 void reescala(LweSample* result, const LweSample* a, const int nb_bits_result, const int nb_bits,  const TFheGateBootstrappingCloudKeySet* bk){
-  LweSample* aux = new_gate_bootstrapping_ciphertext_array(nb_bits_result, bk->params);
 
   for(int i=0; i < nb_bits_result; i++)
     bootsCONSTANT(&result[i], 0, bk);
