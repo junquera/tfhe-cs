@@ -4,7 +4,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "common/arithmetic.h"
+#include "tfhe-math/arithmetic.h"
 
 // Número de bits con los que queremos trabajar
 const int nb_bits = 64;
