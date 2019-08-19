@@ -36,7 +36,8 @@ void div_float(LweSample* result, const LweSample* a, const LweSample* b, const 
 void h_pow(LweSample* result, const LweSample* a, const int n, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk);
 void porDiez(LweSample* result, const LweSample* a, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk);
 void entreDiez(LweSample* result, const LweSample* a, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk);
-void reescala(LweSample* result, const LweSample* a, const int nb_bits_result, const int nb_bits,  const TFheGateBootstrappingCloudKeySet* bk);
+void u_reescala(LweSample* result, const LweSample* a, const int nb_bits_result, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk);
+void reescala(LweSample* result, const LweSample* a, const int nb_bits_result, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk);
 
 int64_t float2hint(float i, int float_bits);
 float hint2float(int64_t i, int float_bits);

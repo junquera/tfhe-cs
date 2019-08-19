@@ -693,7 +693,7 @@ void porDiez(LweSample* result, const LweSample* a, const int nb_bits, const TFh
 }
 
 // Reescalar de nb_bits a nb_bits_result
-void reescala(LweSample* result, const LweSample* a, const int nb_bits_result, const int nb_bits,  const TFheGateBootstrappingCloudKeySet* bk){
+void u_reescala(LweSample* result, const LweSample* a, const int nb_bits_result, const int nb_bits,  const TFheGateBootstrappingCloudKeySet* bk){
 
   for(int i=0; i < nb_bits_result; i++)
     bootsCONSTANT(&result[i], 0, bk);
@@ -702,6 +702,27 @@ void reescala(LweSample* result, const LweSample* a, const int nb_bits_result, c
   int bits = (nb_bits > nb_bits_result) ? nb_bits_result : nb_bits;
   for(int i=0; i < bits; i++)
     bootsCOPY(&result[i], &a[i], bk);
+}
+
+void reescala(LweSample* result, const LweSample* a, const int nb_bits_result, const int nb_bits,  const TFheGateBootstrappingCloudKeySet* bk){
+  LweSample* auxA = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+
+  LweSample* n = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  LweSample* corrige = new_gate_bootstrapping_ciphertext_array(2, bk->params);
+
+  LweSample* aux_res = new_gate_bootstrapping_ciphertext_array(nb_bits_result, bk->params);
+  LweSample* aux_res_neg = new_gate_bootstrapping_ciphertext_array(nb_bits_result, bk->params);
+
+  negativo(auxA, a, nb_bits, bk);
+  is_negative(corrige, a, nb_bits, bk);
+  // Trabajaremos con el positivo
+  maximum(n, auxA, a, nb_bits, bk);
+
+  u_reescala(aux_res, n, nb_bits_result, nb_bits, bk);
+
+  negativo(aux_res_neg, aux_res, nb_bits_result, bk);
+  for(int i = 0; i < nb_bits_result; i++)
+    bootsMUX(&result[i], &corrige[0], &aux_res_neg[i], &aux_res[i], bk);
 }
 
 // En funciones _flouat los datos intermedios ocupan el doble...
