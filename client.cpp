@@ -1,9 +1,15 @@
 #include "client.h"
+HClient::HClient(int _nb_bits, int _float_bits) : HClient(_nb_bits, _float_bits, "secret.key") {}
 
-HClient::HClient(int _nb_bits, int _float_bits){
+HClient::HClient(int _nb_bits, int _float_bits, string sec_key_path) {
 
 	nb_bits = _nb_bits;
 	float_bits = _float_bits;
+
+  if(exists_file(sec_key_path))
+    setKeysFromFile(sec_key_path);
+  else
+    genKeys();
 
 };
 

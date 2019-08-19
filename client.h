@@ -6,6 +6,7 @@
 class HClient {
 	public:
 		HClient(int _nb_bits, int _float_bits);
+		HClient(int _nb_bits, int _float_bits, string sec_key_path);
 		void genKeys();
 		void setKeysFromFile(string keyFileName);
 		void cifra(LweSample* answer, int64_t input);

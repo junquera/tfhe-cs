@@ -115,10 +115,6 @@ float checkFileValue(HClient client, string fileName){
 int main(){
 
   HClient client(nb_bits, float_bits);
-  if(exists_file("secret.key"))
-    client.setKeysFromFile("secret.key");
-  else
-    client.genKeys();
 
   int opcion;
 
