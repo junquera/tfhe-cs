@@ -27,6 +27,9 @@ float finisterre_1417[48][2] = {
 };
 
 
+/*
+  @param values x,y values array like: { {x0, y0}, ... , {xn, yn} }
+*/
 void generateValues(HClient client, int n_values, float values[][2], string name){
 
 	TFheGateBootstrappingCloudKeySet* bk;
@@ -42,8 +45,7 @@ void generateValues(HClient client, int n_values, float values[][2], string name
     LweSample* cipher = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
 
     // Añade xs
-    plain = float2hint(values[i][0], float_bits);
-    client.cifra(cipher, plain);
+    client.cifra(cipher, values[i][0], float_bits);
 
     stringStream.str("");
     stringStream << name << "X" << i;
