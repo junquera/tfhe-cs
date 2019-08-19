@@ -21,14 +21,6 @@ void HClient::cifra(LweSample* result, int64_t input){
 	}
 };
 
-void HClient::cifra(LweSample* result, float f_input, int float_bits){
-	int64_t input = float2hint(f_input, float_bits);
-
-	for(int i = 0; i < nb_bits; i++) {
-		bootsSymEncrypt(&result[i], ((int)(input/pow(2,i)))&1, key);
-	}
-};
-
 int64_t HClient::descifra(LweSample* input){
 
   int64_t int_answer = 0;

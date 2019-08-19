@@ -45,7 +45,8 @@ void generateValues(HClient client, int n_values, float values[][2], string name
     LweSample* cipher = new_gate_bootstrapping_ciphertext_array(nb_bits, params);
 
     // Añade xs
-    client.cifra(cipher, values[i][0], float_bits);
+    plain = float2hint(values[i][0], float_bits);
+    client.cifra(cipher, plain);
 
     stringStream.str("");
     stringStream << name << "X" << i;

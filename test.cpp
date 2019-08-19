@@ -222,7 +222,7 @@ void test_times(){
 }
 
 int main(){
-	// test_times();
-	test();
+	test_times();
+	// test();
 	return 0;
 }
