@@ -1,0 +1,3 @@
+[submodule "tfhe-math"]
+	path = tfhe-math
+	url = git@gitlab.com:junquera/tfhe-math.git
