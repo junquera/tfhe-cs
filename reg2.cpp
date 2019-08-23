@@ -145,15 +145,8 @@ void RegresionCuadratica::initVectores(const vector<LweSample*> xs, const vector
   if(xs.size() != ys.size()){
     throw "regresion_cuadratica: len(xs) != len(ys)";
   }
-
-  // Inicializa "n"
-  for(int ci=0; ci < nb_bits; ci++)
-    bootsCONSTANT(&n[ci], (values>>ci)&1, bk);
-
-  // Ajusta "n" a float_bits
-  shiftl(aux1, n, float_bits, nb_bits, bk);
-  for(int ci=0; ci < nb_bits; ci++)
-    bootsCOPY(&n[ci], &aux1[ci], bk);
+  // Inicializa n
+  num2lwe(n, values, float_bits, nb_bits, bk);
 
   bool exists_i = retrieveResult(results_path + "/" + "i", i, nb_bits, bk->params);
   bool exists_j = retrieveResult(results_path + "/" + "j", j, nb_bits, bk->params);
