@@ -42,7 +42,13 @@ void saveResult(string name, LweSample* result, int nb_bits, const TFheGateBoots
 
 
 void generaClaves(TFheGateBootstrappingSecretKeySet* &key) {
-	// TODO ¿QUé es esto?
+  /*
+    En función de las operaciones a realizar:
+
+    http://lab.algonics.net/slides_ac16/index-asiacrypt.html#/10
+
+    Por ahora, sólo hasta 128 (limites de TFHE)
+  */
 	const int minimum_lambda = 110;
 
 	TFheGateBootstrappingParameterSet* params = new_default_gate_bootstrapping_parameters(minimum_lambda);

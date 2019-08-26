@@ -441,7 +441,7 @@ void RegresionCuadratica::calcB(LweSample* b, LweSample* c, string results_path)
   LweSample* cil = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
 
   mult_float(cjk, c, jk, float_bits, nb_bits, bk);
-  mult_float(cil, c, jk, float_bits, nb_bits, bk);
+  mult_float(cil, c, il, float_bits, nb_bits, bk);
   sub(aux1, cjk, cil, nb_bits, bk);
   sub(aux2, vl, kw, nb_bits, bk);
   add(aux3, aux1, aux2, nb_bits, bk);
