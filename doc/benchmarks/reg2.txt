@@ -4,3 +4,4 @@ calcDuplas! 35608
 calcComplejos! 75325
 dCalcC! 220161
 CalcB! 264239
+CalcA! 352023
