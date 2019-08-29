@@ -1,5 +1,5 @@
-initVectores! 0
-calcCuadrados! 0
+initVectores! 235885
+calcCuadrados! 15687
 calcDuplas! 35608
 calcComplejos! 75325
 dCalcC! 220161
