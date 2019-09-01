@@ -20,10 +20,24 @@ class RegresionCuadratica {
 
     TFheGateBootstrappingCloudKeySet* bk;
 
+    /*
+      Inicialización de valores: i, j, k, l, u, v y w
+    */
     void initVectores(const vector<LweSample*> xs, const vector<LweSample*> ys, string results_path);
+    /*
+      Cálculo de potencias con vectores iniciales: i^2, j^2...
+    */
     void calcCuadrados(string results_path);
+    /*
+      Cálculo de parejas de valores: il, kv, ln...
+    */
     void calcDuplas(string results_path);
+
+    /*
+      Cálculo de combinaciones de duplas: ijkl, i2l2, j3l...
+    */
     void calcComplejos(string results_path);
+
     void calcC(LweSample* c, string results_path);
     void calcB(LweSample* b, LweSample* c, string results_path);
     void calcA(LweSample* a, LweSample* b, LweSample* c, string results_path);
@@ -37,6 +51,7 @@ class RegresionCuadratica {
     LweSample* n;
     LweSample* uno;
 
+    // Vectores iniciales
     LweSample* i;
     LweSample* j;
     LweSample* k;
@@ -63,6 +78,7 @@ class RegresionCuadratica {
     LweSample* vl;
     LweSample* wj;
 
+    // Complejos
     LweSample* ijkl;
     LweSample* i2l2;
     LweSample* iklw;
