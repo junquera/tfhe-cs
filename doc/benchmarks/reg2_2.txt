@@ -1,0 +1,20 @@
+junquera@delfin:~/tfm/tfhe-cs$ ./server
+¿Dónde está la clave pública? > cloud.key
+¿Dónde están los datos? > td
+¿Cómo se llaman (ciudad_A, ciudad_B...)? > ciudad_A
+¿Dónde quieres guardar los resultados? > td/result
+Init vector: 0
+Init vector: 1
+Init vector: 2
+Init vector: 3
+Init vector: 4
+Init vector: 5
+Init vector: 6
+Init vector: 7
+Init vector: 8
+Init vector: 9
+Init vector: 10
+Init vector: 11
+initVectores! 68940
+calcCuadrados! 73495   # t = 73495-68940=4555
+---14/09/2019
