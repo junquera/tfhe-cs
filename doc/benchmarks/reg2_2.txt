@@ -18,4 +18,5 @@ Init vector: 11
 initVectores! 68940
 calcCuadrados! 73495  # t = 73495-68940=4555
 calcDuplas! 83926     # t = 83926-73495=10431
+calcComplejos! 95448  # t = 95448-83926=11522
 ---14/09/2019
